@@ -12,3 +12,6 @@ Thumbs.db
 # Build caches
 .vite/
 coverage/
+
+# Prisma generated client
+server/src/generated/
