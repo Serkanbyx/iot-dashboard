@@ -6,3 +6,78 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+enum SensorType {
+  TEMPERATURE
+  HUMIDITY
+  PRESSURE
+}
+
+enum Severity {
+  WARNING
+  CRITICAL
+}
+
+enum Direction {
+  ABOVE
+  BELOW
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(50)
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(255)
+  role      Role      @default(VIEWER)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  acknowledgedAlerts Alert[] @relation("AcknowledgedBy")
+  thresholdConfigs   ThresholdConfig[] @relation("CreatedBy")
+}
+
+model ThresholdConfig {
+  id          String     @id @default(uuid())
+  sensorType  SensorType @unique
+  minValue    Float
+  maxValue    Float
+  criticalMin Float
+  criticalMax Float
+  unit        String     @db.VarChar(10)
+  isActive    Boolean    @default(true)
+  createdById String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  createdBy User? @relation("CreatedBy", fields: [createdById], references: [id])
+}
+
+model Alert {
+  id               String     @id @default(uuid())
+  sensorId         String     @db.VarChar(50)
+  floor            String     @db.VarChar(50)
+  sensorType       SensorType
+  value            Float
+  threshold        Float
+  severity         Severity
+  direction        Direction
+  message          String     @db.VarChar(200)
+  isAcknowledged   Boolean    @default(false)
+  acknowledgedById String?
+  acknowledgedAt   DateTime?
+  emailSent        Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+
+  acknowledgedBy User? @relation("AcknowledgedBy", fields: [acknowledgedById], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([sensorId, sensorType, isAcknowledged])
+  @@index([isAcknowledged, severity])
+}
