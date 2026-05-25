@@ -8,6 +8,7 @@ import { connectDatabase, disconnectDatabase } from "./config/database.js";
 import { sanitize } from "./middlewares/sanitize.js";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -26,8 +27,8 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
-// --- Routes (mounted in later steps) ---
-// app.use("/api/auth", authRoutes);
+// --- Routes ---
+app.use("/api/auth", authRoutes);
 // app.use("/api/sensors", sensorRoutes);
 // app.use("/api/alerts", alertRoutes);
 // app.use("/api/thresholds", thresholdRoutes);
