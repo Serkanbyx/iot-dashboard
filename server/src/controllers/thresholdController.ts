@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import prisma from "../config/database.js";
+import { refreshCache } from "../services/alertEngine.js";
 
 const VALID_SENSOR_TYPES = ["TEMPERATURE", "HUMIDITY", "PRESSURE"] as const;
 type SensorTypeEnum = (typeof VALID_SENSOR_TYPES)[number];
@@ -58,8 +59,7 @@ export const updateThreshold = async (
       },
     });
 
-    // Alert engine cache refresh will be integrated in Step 9
-    // alertEngine.refreshCache();
+    refreshCache();
 
     res.json({ threshold });
   } catch (error) {

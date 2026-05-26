@@ -2,6 +2,7 @@ import mqtt from "mqtt";
 import type { Server } from "socket.io";
 import mqttConfig from "../config/mqtt.js";
 import prisma from "../config/database.js";
+import { processReading } from "./alertEngine.js";
 import type { SensorReading, SensorTypeValue } from "../types/sensor.js";
 
 const VALID_SENSOR_TYPES: SensorTypeValue[] = ["temperature", "humidity", "pressure"];
@@ -71,8 +72,7 @@ export function startMqttConsumer(io: Server): void {
 
       io.to("dashboard").emit("sensor:data", data);
 
-      // Alert engine will be integrated in Step 9
-      // await processReading(data, io);
+      await processReading(data, io);
     } catch (error) {
       if (error instanceof SyntaxError) {
         console.warn("[MQTT] Invalid JSON payload, skipping");
