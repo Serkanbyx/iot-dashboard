@@ -10,9 +10,9 @@ export const validate = (
 
   if (!errors.isEmpty()) {
     res.status(400).json({
-      error: "Validation failed",
-      details: errors.array().map((e) => ({
-        field: "path" in e ? e.path : "unknown",
+      success: false,
+      errors: errors.array().map((e) => ({
+        field: e.type === "field" ? e.path : "",
         message: e.msg,
       })),
     });
