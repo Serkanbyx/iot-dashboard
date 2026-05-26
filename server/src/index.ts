@@ -10,6 +10,7 @@ import { sanitize } from "./middlewares/sanitize.js";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import thresholdRoutes from "./routes/thresholdRoutes.js";
 import { startMqttConsumer } from "./services/mqttConsumer.js";
 
 const app = express();
@@ -52,9 +53,9 @@ app.get("/api/health", (_req, res) => {
 
 // --- Routes ---
 app.use("/api/auth", authRoutes);
+app.use("/api/thresholds", thresholdRoutes);
 // app.use("/api/sensors", sensorRoutes);
 // app.use("/api/alerts", alertRoutes);
-// app.use("/api/thresholds", thresholdRoutes);
 
 // --- Error Handler (must be last) ---
 app.use(errorHandler);
