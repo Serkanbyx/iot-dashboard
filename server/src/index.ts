@@ -3,15 +3,38 @@ import helmet from "helmet";
 import cors from "cors";
 import { createServer } from "node:http";
 
+import { Server as SocketServer } from "socket.io";
 import config from "./config/env.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
 import { sanitize } from "./middlewares/sanitize.js";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import { startMqttConsumer } from "./services/mqttConsumer.js";
 
 const app = express();
 const httpServer = createServer(app);
+
+const io = new SocketServer(httpServer, {
+  cors: { origin: config.CLIENT_URL, credentials: true },
+});
+
+io.on("connection", (socket) => {
+  socket.join("dashboard");
+  console.log(`[SOCKET] Client connected: ${socket.id}`);
+
+  socket.on("subscribe:floor", (floor: string) => {
+    socket.join(`floor:${floor}`);
+  });
+
+  socket.on("unsubscribe:floor", (floor: string) => {
+    socket.leave(`floor:${floor}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`[SOCKET] Client disconnected: ${socket.id}`);
+  });
+});
 
 // --- Middleware Stack ---
 app.disable("x-powered-by");
@@ -40,7 +63,7 @@ app.use(errorHandler);
 async function bootstrap(): Promise<void> {
   try {
     await connectDatabase();
-    // MQTT consumer will be started in a later step
+    startMqttConsumer(io);
 
     httpServer.listen(config.PORT, () => {
       console.log(
