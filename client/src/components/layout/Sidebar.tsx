@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,6 +10,9 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSocketContext } from "../../contexts/SocketContext";
+import LiveIndicator from "../dashboard/LiveIndicator";
 import { cn } from "../../utils/cn";
 
 interface SidebarProps {
@@ -32,12 +35,21 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { isAdmin } = useAuth();
+  const { isConnected } = useSocketContext();
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
   const isWide = expanded || hovered;
 
   const toggleExpand = useCallback(() => setExpanded((prev) => !prev), []);
+
+  const visibleItems = useMemo(
+    () => NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin),
+    [isAdmin]
+  );
+
+  const connectionStatus = isConnected ? "online" : ("offline" as const);
 
   return (
     <>
@@ -53,7 +65,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         style={{ width: isWide ? 240 : 72 }}
       >
         <nav className="flex-1 flex flex-col gap-1 py-4 px-2">
-          {NAV_ITEMS.map((item) => (
+          {visibleItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -86,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     "absolute left-full ml-2 px-2.5 py-1 rounded-md text-xs font-medium",
                     "bg-bg-elevated text-text-primary shadow-lg",
                     "opacity-0 group-hover:opacity-100 pointer-events-none",
-                    "transition-opacity duration-150 whitespace-nowrap"
+                    "transition-opacity duration-150 whitespace-nowrap z-50"
                   )}
                 >
                   {item.label}
@@ -153,10 +165,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               {/* Mobile header */}
               <div className="flex items-center justify-between px-4 h-16 border-b border-glass-border">
                 <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-emerald opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-emerald" />
-                  </span>
+                  <LiveIndicator status={connectionStatus} />
                   <span className="text-lg font-semibold tracking-tight">
                     IoT Dashboard
                   </span>
@@ -173,7 +182,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               {/* Mobile nav */}
               <nav className="flex-1 flex flex-col gap-1 py-4 px-3">
-                {NAV_ITEMS.map((item) => (
+                {visibleItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}

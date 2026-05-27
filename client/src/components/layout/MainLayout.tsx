@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import MobileNav from "./MobileNav";
 import { cn } from "../../utils/cn";
 
 export default function MainLayout() {
@@ -25,6 +26,7 @@ export default function MainLayout() {
         className={cn(
           "pt-16 min-h-screen",
           "ml-0 md:ml-[72px]",
+          "pb-16 md:pb-0",
           "transition-[margin] duration-300 ease-in-out"
         )}
       >
@@ -39,6 +41,8 @@ export default function MainLayout() {
           <Outlet />
         </div>
       </main>
+
+      <MobileNav />
     </div>
   );
 }
