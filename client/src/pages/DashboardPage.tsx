@@ -9,6 +9,7 @@ import type { SensorReading, ThresholdConfig, Alert } from "../types";
 import LiveIndicator from "../components/dashboard/LiveIndicator";
 import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
+import SensorCard from "../components/dashboard/SensorCard";
 
 const HISTORY_CAP = 60;
 
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [selectedFloor, setSelectedFloor] = useState("all");
   const [loading, setLoading] = useState(true);
   const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Initial data fetch
   useEffect(() => {
@@ -147,37 +149,32 @@ export default function DashboardPage() {
         onTabChange={setSelectedFloor}
       />
 
-      {/* Sensor cards grid — placeholder for Step 23 */}
+      {/* Sensor cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredReadings.length === 0 ? (
           <p className="col-span-full text-center text-text-muted py-12">
             No sensor data available yet.
           </p>
         ) : (
-          filteredReadings.map((reading) => (
-            <div
-              key={readingKey(reading.sensorId, reading.type)}
-              className="glass rounded-xl p-4 border border-glass-border"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-text-muted font-medium uppercase tracking-wider">
-                  {reading.type}
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  {reading.floor}
-                </span>
-              </div>
-              <p className="text-2xl font-bold">
-                {reading.value.toFixed(1)}
-                <span className="text-sm text-text-secondary ml-1">
-                  {reading.unit}
-                </span>
-              </p>
-              <p className="text-xs text-text-muted mt-1">
-                {reading.sensorId}
-              </p>
-            </div>
-          ))
+          filteredReadings.map((reading) => {
+            const key = readingKey(reading.sensorId, reading.type);
+            const sensorHistory = history.get(key) ?? [];
+            const threshold = thresholds.find(
+              (t) => t.sensorType.toLowerCase() === reading.type
+            );
+            return (
+              <SensorCard
+                key={key}
+                reading={reading}
+                history={sensorHistory}
+                threshold={threshold}
+                isExpanded={expandedCard === key}
+                onExpand={() =>
+                  setExpandedCard((prev) => (prev === key ? null : key))
+                }
+              />
+            );
+          })
         )}
       </div>
 
