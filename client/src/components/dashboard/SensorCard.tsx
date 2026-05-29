@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Thermometer, Droplets, Gauge, ChevronDown } from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import type { SensorReading, ThresholdConfig, SensorTypeValue } from "../../types";
 import AnimatedNumber from "../ui/AnimatedNumber";
-import SensorSparkline, { COLOR_MAP } from "./SensorSparkline";
+import SensorSparkline from "./SensorSparkline";
+import SensorChart from "./SensorChart";
 import { cn } from "../../utils/cn";
 
 interface SensorCardProps {
@@ -110,13 +110,6 @@ export default function SensorCard({
   const styles = ALERT_STYLES[alertState];
   const relativeTime = useRelativeTime(reading.timestamp);
 
-  const expandedChartData = useMemo(
-    () => history.map((r, i) => ({ i, value: r.value })),
-    [history]
-  );
-
-  const hexColor = COLOR_MAP[reading.type] ?? "#3b82f6";
-
   return (
     <motion.div
       layout
@@ -204,63 +197,20 @@ export default function SensorCard({
 
       {/* Expanded chart */}
       <AnimatePresence>
-        {isExpanded && expandedChartData.length > 1 && (
+        {isExpanded && history.length > 1 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 160, opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden mt-3 pt-3 border-t border-glass-border"
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={expandedChartData}>
-                <defs>
-                  <linearGradient
-                    id={`expandFill-${reading.sensorId}-${reading.type}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor={hexColor} stopOpacity={0.2} />
-                    <stop offset="100%" stopColor={hexColor} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke={hexColor}
-                  strokeOpacity={0.6}
-                  strokeWidth={2}
-                  fill={`url(#expandFill-${reading.sensorId}-${reading.type})`}
-                  dot={false}
-                />
-                {threshold && (
-                  <>
-                    <Area
-                      type="monotone"
-                      dataKey={() => threshold.maxValue}
-                      stroke="rgba(245, 158, 11, 0.4)"
-                      strokeWidth={1}
-                      strokeDasharray="4 4"
-                      fill="none"
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey={() => threshold.minValue}
-                      stroke="rgba(245, 158, 11, 0.4)"
-                      strokeWidth={1}
-                      strokeDasharray="4 4"
-                      fill="none"
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                  </>
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
+            <SensorChart
+              data={history}
+              threshold={threshold}
+              sensorType={reading.type}
+              height={200}
+            />
           </motion.div>
         )}
       </AnimatePresence>
