@@ -9,7 +9,8 @@ import type { SensorReading, ThresholdConfig, Alert } from "../types";
 import LiveIndicator from "../components/dashboard/LiveIndicator";
 import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
-import SensorCard from "../components/dashboard/SensorCard";
+import AlertToast from "../components/dashboard/AlertToast";
+import SensorGrid from "../components/dashboard/SensorGrid";
 
 const HISTORY_CAP = 60;
 
@@ -30,7 +31,6 @@ export default function DashboardPage() {
   const [selectedFloor, setSelectedFloor] = useState("all");
   const [loading, setLoading] = useState(true);
   const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Initial data fetch
   useEffect(() => {
@@ -72,10 +72,7 @@ export default function DashboardPage() {
     setHistory((prev) => {
       const next = new Map(prev);
       const existing = next.get(key) ?? [];
-      const updated = [...existing, data];
-      if (updated.length > HISTORY_CAP) {
-        updated.splice(0, updated.length - HISTORY_CAP);
-      }
+      const updated = [...existing, data].slice(-HISTORY_CAP);
       next.set(key, updated);
       return next;
     });
@@ -86,17 +83,12 @@ export default function DashboardPage() {
   // Socket: alert:new
   const handleNewAlert = useCallback((alert: Alert) => {
     setUnacknowledgedCount((prev) => prev + 1);
-    toast.error(alert.message, { duration: 5000 });
+    toast.custom((t) => <AlertToast alert={alert} toastId={t.id} />, {
+      duration: 5000,
+    });
   }, []);
 
   useSocket<Alert>("alert:new", handleNewAlert);
-
-  // Floor filtering
-  const filteredReadings = useMemo(() => {
-    const entries = Array.from(readings.values());
-    if (selectedFloor === "all") return entries;
-    return entries.filter((r) => r.floor === selectedFloor);
-  }, [readings, selectedFloor]);
 
   // Floor tabs with counts
   const floors = useMemo(() => {
@@ -113,6 +105,8 @@ export default function DashboardPage() {
       })),
     ];
   }, [readings]);
+
+  const readingsList = useMemo(() => Array.from(readings.values()), [readings]);
 
   if (loading) {
     return (
@@ -132,9 +126,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <LiveIndicator
-              status={isConnected ? "online" : "offline"}
-            />
+            <LiveIndicator status={isConnected ? "online" : "offline"} />
           </div>
           <p className="text-sm text-text-secondary mt-0.5">
             Real-time sensor monitoring
@@ -149,41 +141,13 @@ export default function DashboardPage() {
         onTabChange={setSelectedFloor}
       />
 
-      {/* Sensor cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredReadings.length === 0 ? (
-          <p className="col-span-full text-center text-text-muted py-12">
-            No sensor data available yet.
-          </p>
-        ) : (
-          filteredReadings.map((reading) => {
-            const key = readingKey(reading.sensorId, reading.type);
-            const sensorHistory = history.get(key) ?? [];
-            const threshold = thresholds.find(
-              (t) => t.sensorType.toLowerCase() === reading.type
-            );
-            return (
-              <SensorCard
-                key={key}
-                reading={reading}
-                history={sensorHistory}
-                threshold={threshold}
-                isExpanded={expandedCard === key}
-                onExpand={() =>
-                  setExpandedCard((prev) => (prev === key ? null : key))
-                }
-              />
-            );
-          })
-        )}
-      </div>
-
-      {/* Expose state for debugging in dev */}
-      {import.meta.env.DEV && (
-        <p className="text-[10px] text-text-muted">
-          {readings.size} readings · {history.size} histories · {thresholds.length} thresholds
-        </p>
-      )}
+      {/* Sensor grid */}
+      <SensorGrid
+        readings={readingsList}
+        history={history}
+        thresholds={thresholds}
+        selectedFloor={selectedFloor}
+      />
     </div>
   );
 }
