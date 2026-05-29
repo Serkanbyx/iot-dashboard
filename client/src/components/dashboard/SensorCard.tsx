@@ -4,6 +4,7 @@ import { Thermometer, Droplets, Gauge, ChevronDown } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import type { SensorReading, ThresholdConfig, SensorTypeValue } from "../../types";
 import AnimatedNumber from "../ui/AnimatedNumber";
+import SensorSparkline, { COLOR_MAP } from "./SensorSparkline";
 import { cn } from "../../utils/cn";
 
 interface SensorCardProps {
@@ -109,15 +110,12 @@ export default function SensorCard({
   const styles = ALERT_STYLES[alertState];
   const relativeTime = useRelativeTime(reading.timestamp);
 
-  const sparklineData = useMemo(
-    () => history.slice(-10).map((r, i) => ({ i, value: r.value })),
-    [history]
-  );
-
   const expandedChartData = useMemo(
     () => history.map((r, i) => ({ i, value: r.value })),
     [history]
   );
+
+  const hexColor = COLOR_MAP[reading.type] ?? "#3b82f6";
 
   return (
     <motion.div
@@ -158,33 +156,13 @@ export default function SensorCard({
       </div>
 
       {/* Sparkline */}
-      {sparklineData.length > 1 && (
-        <div className="h-10 mb-3 -mx-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sparklineData}>
-              <defs>
-                <linearGradient
-                  id={`sparkFill-${reading.sensorId}-${reading.type}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor={config.stroke} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={config.stroke} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke={config.stroke}
-                strokeWidth={1.5}
-                fill={`url(#sparkFill-${reading.sensorId}-${reading.type})`}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+      {history.length > 0 && (
+        <div className="mb-3">
+          <SensorSparkline
+            data={history}
+            color={reading.type}
+            animate={false}
+          />
         </div>
       )}
 
@@ -244,14 +222,15 @@ export default function SensorCard({
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="0%" stopColor={config.stroke} stopOpacity={0.2} />
-                    <stop offset="100%" stopColor={config.stroke} stopOpacity={0} />
+                    <stop offset="0%" stopColor={hexColor} stopOpacity={0.2} />
+                    <stop offset="100%" stopColor={hexColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke={config.stroke}
+                  stroke={hexColor}
+                  strokeOpacity={0.6}
                   strokeWidth={2}
                   fill={`url(#expandFill-${reading.sensorId}-${reading.type})`}
                   dot={false}
