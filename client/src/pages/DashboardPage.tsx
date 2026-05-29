@@ -9,7 +9,7 @@ import type { SensorReading, ThresholdConfig, Alert } from "../types";
 import LiveIndicator from "../components/dashboard/LiveIndicator";
 import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
-import AlertToast from "../components/dashboard/AlertToast";
+import AlertToast from "../components/alerts/AlertToast";
 import SensorGrid from "../components/dashboard/SensorGrid";
 
 const HISTORY_CAP = 60;
@@ -83,9 +83,10 @@ export default function DashboardPage() {
   // Socket: alert:new
   const handleNewAlert = useCallback((alert: Alert) => {
     setUnacknowledgedCount((prev) => prev + 1);
-    toast.custom((t) => <AlertToast alert={alert} toastId={t.id} />, {
-      duration: 5000,
-    });
+    toast.custom(
+      (t) => <AlertToast alert={alert} toastId={t.id} visible={t.visible} />,
+      { duration: 6000 }
+    );
   }, []);
 
   useSocket<Alert>("alert:new", handleNewAlert);
