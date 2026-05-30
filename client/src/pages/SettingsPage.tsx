@@ -6,6 +6,7 @@ import type { ThresholdConfig } from "../types";
 import ThresholdCard, {
   type ThresholdFormValues,
 } from "../components/settings/ThresholdCard";
+import SystemStatus from "../components/settings/SystemStatus";
 
 const TYPE_ORDER: Record<string, number> = {
   TEMPERATURE: 0,
@@ -138,7 +139,8 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* SystemStatus panel — added in Step 33 */}
+      {/* System status panel */}
+      <SystemStatus />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Thermometer, Droplets, Gauge, Save, Loader2 } from "lucide-react";
 import type { ThresholdConfig } from "../../types";
+import RangeVisualizer from "./RangeVisualizer";
 import { cn } from "../../utils/cn";
 
 export interface ThresholdFormValues {
@@ -143,7 +144,14 @@ export default function ThresholdCard({
         </div>
       </div>
 
-      {/* RangeVisualizer slot — added in Step 33 */}
+      {/* Threshold zone visualization (live preview from current form values) */}
+      <RangeVisualizer
+        criticalMin={values.criticalMin}
+        minValue={values.minValue}
+        maxValue={values.maxValue}
+        criticalMax={values.criticalMax}
+        unit={config.unit}
+      />
 
       {/* 2x2 form grid */}
       <div className="grid grid-cols-2 gap-3">
