@@ -9,6 +9,8 @@ import type {
   AggregatedReading,
 } from "../types";
 import FilterBar from "../components/historical/FilterBar";
+import HistoricalChart from "../components/historical/HistoricalChart";
+import StatsSummary from "../components/historical/StatsSummary";
 import type { DateRange } from "../components/historical/DateRangePicker";
 
 type AggregationWindow = "minute" | "hour";
@@ -35,6 +37,7 @@ export default function HistoricalPage() {
   const [window, setWindow] = useState<AggregationWindow>("minute");
   const [data, setData] = useState<AggregatedReading[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Fetch sensor list + thresholds on mount
   useEffect(() => {
@@ -85,6 +88,7 @@ export default function HistoricalPage() {
         window,
       });
       setData(res.data);
+      setHasLoaded(true);
       if (res.data.length === 0) {
         toast("No data found for the selected range.");
       }
@@ -121,22 +125,25 @@ export default function HistoricalPage() {
         onLoad={handleLoad}
       />
 
-      {/* Chart placeholder — implemented in Step 29 */}
-      <div className="glass rounded-xl p-4 min-h-[400px] flex items-center justify-center">
-        <p className="text-sm text-text-muted">
-          {loading
-            ? "Loading data..."
-            : data.length > 0
-              ? `${data.length} data points loaded for ${selectedSensor} (${selectedType})`
-              : "Load data to see the chart."}
-        </p>
-      </div>
-
-      {/* Stats placeholder — implemented in Step 29 */}
-      {activeThreshold && import.meta.env.DEV && (
-        <p className="text-[10px] text-text-muted">
-          Threshold loaded: {activeThreshold.sensorType}
-        </p>
+      {/* Chart + stats */}
+      {hasLoaded || loading ? (
+        <>
+          <HistoricalChart
+            data={data}
+            threshold={activeThreshold}
+            sensorType={selectedType}
+            loading={loading}
+          />
+          {data.length > 0 && (
+            <StatsSummary data={data} unit={activeThreshold?.unit ?? ""} />
+          )}
+        </>
+      ) : (
+        <div className="glass rounded-xl p-4 min-h-[400px] flex items-center justify-center">
+          <p className="text-sm text-text-muted">
+            Select filters and load data to see the chart.
+          </p>
+        </div>
       )}
     </div>
   );
