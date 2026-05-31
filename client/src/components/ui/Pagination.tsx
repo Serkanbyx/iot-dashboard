@@ -29,7 +29,7 @@ function buildPages(page: number, totalPages: number): PageToken[] {
 
 const buttonClass = cn(
   "flex items-center justify-center h-9 min-w-9 px-3 rounded-lg text-sm font-medium",
-  "glass transition-colors duration-150",
+  "glass transition-colors duration-150 focus-ring",
   "disabled:opacity-40 disabled:pointer-events-none"
 );
 

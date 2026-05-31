@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         onMouseLeave={() => setHovered(false)}
         className={cn(
           "hidden md:flex fixed top-16 left-0 bottom-0 z-40",
-          "flex-col bg-bg-secondary border-r border-glass-border",
+          "flex-col bg-bg-secondary border-r border-glass-border sidebar-shadow",
           "transition-[width] duration-300 ease-in-out overflow-hidden"
         )}
         style={{ width: isWide ? 240 : 72 }}
@@ -72,7 +72,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               end={item.path === "/"}
               className={({ isActive }) =>
                 cn(
-                  "group flex items-center gap-3 px-3 py-2.5 rounded-lg",
+                  "group flex items-center gap-3 px-3 py-2.5 rounded-lg focus-ring",
                   "transition-all duration-150 relative",
                   isActive
                     ? "text-accent-blue bg-accent-blue/10 shadow-[inset_3px_0_0_0_var(--color-accent-blue)]"
@@ -114,7 +114,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             type="button"
             onClick={toggleExpand}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg w-full",
+              "flex items-center gap-3 px-3 py-2 rounded-lg w-full focus-ring",
               "text-text-muted hover:text-text-secondary hover:bg-bg-card-hover",
               "transition-colors duration-150"
             )}
@@ -173,7 +173,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-card-hover transition-colors"
+                  className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-card-hover transition-colors focus-ring"
                   aria-label="Close sidebar"
                 >
                   <X size={20} />
@@ -190,7 +190,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={onClose}
                     className={({ isActive }) =>
                       cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg",
+                        "flex items-center gap-3 px-3 py-3 rounded-lg focus-ring",
                         "transition-all duration-150",
                         isActive
                           ? "text-accent-blue bg-accent-blue/10 shadow-[inset_3px_0_0_0_var(--color-accent-blue)]"

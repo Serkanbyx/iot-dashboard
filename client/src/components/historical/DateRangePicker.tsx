@@ -83,8 +83,8 @@ export default function DateRangePicker({
         ))}
       </div>
 
-      {/* Datetime inputs */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Datetime inputs — stack vertically on mobile */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <input
           type="datetime-local"
           value={toLocalInput(value.start)}
@@ -92,13 +92,13 @@ export default function DateRangePicker({
             onChange({ ...value, start: fromLocalInput(e.target.value) })
           }
           className={cn(
-            "h-9 rounded-lg px-3 text-sm",
+            "h-9 w-full sm:w-auto rounded-lg px-3 text-sm",
             "bg-bg-elevated border border-glass-border text-text-primary",
             "outline-none focus:ring-2 focus:ring-accent-blue focus:border-accent-blue"
           )}
           aria-label="Start date and time"
         />
-        <span className="text-text-muted text-sm">to</span>
+        <span className="text-text-muted text-sm hidden sm:inline">to</span>
         <input
           type="datetime-local"
           value={toLocalInput(value.stop)}
@@ -106,7 +106,7 @@ export default function DateRangePicker({
             onChange({ ...value, stop: fromLocalInput(e.target.value) })
           }
           className={cn(
-            "h-9 rounded-lg px-3 text-sm",
+            "h-9 w-full sm:w-auto rounded-lg px-3 text-sm",
             "bg-bg-elevated border border-glass-border text-text-primary",
             "outline-none focus:ring-2 focus:ring-accent-blue focus:border-accent-blue"
           )}

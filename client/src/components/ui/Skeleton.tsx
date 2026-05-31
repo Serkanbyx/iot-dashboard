@@ -24,7 +24,7 @@ export default function Skeleton({
       )}
       style={{
         backgroundImage:
-          "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 40%, transparent 80%)",
+          "linear-gradient(90deg, transparent 0%, var(--shimmer-streak, rgba(255,255,255,0.06)) 40%, transparent 80%)",
         backgroundSize: "200% 100%",
         backgroundColor: "var(--color-bg-elevated)",
       }}

@@ -58,7 +58,7 @@ export default function MobileNav() {
           end={item.path === "/"}
           className={({ isActive }) =>
             cn(
-              "flex flex-col items-center justify-center gap-1",
+              "flex flex-col items-center justify-center gap-1 focus-ring",
               "w-full h-full",
               "transition-colors duration-150",
               isActive

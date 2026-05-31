@@ -87,7 +87,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
           type="button"
           onClick={onMenuToggle}
           className={cn(
-            "md:hidden p-2 rounded-lg",
+            "md:hidden p-2 rounded-lg focus-ring",
             "text-text-secondary hover:text-text-primary",
             "hover:bg-bg-card-hover transition-colors duration-150"
           )}
@@ -116,7 +116,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
           type="button"
           onClick={() => navigate("/alerts")}
           className={cn(
-            "relative p-2 rounded-lg",
+            "relative p-2 rounded-lg focus-ring",
             "text-text-secondary hover:text-text-primary",
             "hover:bg-bg-card-hover transition-colors duration-150",
             shaking && "animate-shake"
@@ -143,7 +143,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
           type="button"
           onClick={handleThemeToggle}
           className={cn(
-            "p-2 rounded-lg",
+            "p-2 rounded-lg focus-ring",
             "text-text-secondary hover:text-text-primary",
             "hover:bg-bg-card-hover transition-colors duration-150"
           )}
@@ -163,9 +163,9 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
             type="button"
             onClick={() => setDropdownOpen((prev) => !prev)}
             className={cn(
-              "flex items-center gap-2 px-2 py-1.5 rounded-lg",
-              "text-text-secondary hover:text-text-primary",
-              "hover:bg-bg-card-hover transition-colors duration-150"
+            "flex items-center gap-2 px-2 py-1.5 rounded-lg focus-ring",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-bg-card-hover transition-colors duration-150"
             )}
             aria-haspopup="true"
             aria-expanded={dropdownOpen}
