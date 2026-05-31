@@ -227,28 +227,84 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 
 /* ── Sub-components ─────────────────────────────────────────────── */
 
+type ConnectionState = "connected" | "reconnecting" | "offline";
+
+function useConnectionState(isConnected: boolean): ConnectionState {
+  const [state, setState] = useState<ConnectionState>(
+    isConnected ? "connected" : "offline"
+  );
+  const disconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (isConnected) {
+      if (disconnectTimer.current) {
+        clearTimeout(disconnectTimer.current);
+        disconnectTimer.current = null;
+      }
+      setState("connected");
+    } else {
+      setState("reconnecting");
+      disconnectTimer.current = setTimeout(() => {
+        setState("offline");
+      }, 5000);
+    }
+
+    return () => {
+      if (disconnectTimer.current) clearTimeout(disconnectTimer.current);
+    };
+  }, [isConnected]);
+
+  return state;
+}
+
+const CONNECTION_CONFIG: Record<
+  ConnectionState,
+  { dot: string; text: string; label: string; glow: string; pulse: boolean }
+> = {
+  connected: {
+    dot: "bg-accent-emerald",
+    text: "text-accent-emerald",
+    label: "Live",
+    glow: "glow-emerald",
+    pulse: false,
+  },
+  reconnecting: {
+    dot: "bg-warning",
+    text: "text-warning",
+    label: "Reconnecting",
+    glow: "",
+    pulse: true,
+  },
+  offline: {
+    dot: "bg-danger",
+    text: "text-danger",
+    label: "Offline",
+    glow: "",
+    pulse: true,
+  },
+};
+
 function ConnectionPill({ isConnected }: { isConnected: boolean }) {
+  const connectionState = useConnectionState(isConnected);
+  const config = CONNECTION_CONFIG[connectionState];
+
   return (
     <div
       className={cn(
         "flex items-center gap-2 px-3 py-1.5 rounded-full",
-        "glass text-xs font-medium",
-        isConnected && "glow-emerald"
+        "glass text-xs font-medium transition-opacity duration-200",
+        config.glow
       )}
     >
       <span
         className={cn(
-          "h-2 w-2 rounded-full",
-          isConnected ? "bg-accent-emerald" : "bg-danger",
-          !isConnected && "animate-pulse"
+          "h-2 w-2 rounded-full transition-colors duration-200",
+          config.dot,
+          config.pulse && "animate-pulse"
         )}
       />
-      <span
-        className={cn(
-          isConnected ? "text-accent-emerald" : "text-danger"
-        )}
-      >
-        {isConnected ? "Live" : "Offline"}
+      <span className={cn("transition-colors duration-200", config.text)}>
+        {config.label}
       </span>
     </div>
   );

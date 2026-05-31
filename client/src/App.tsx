@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
@@ -12,21 +13,23 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<GuestOnlyRoute />}>
-        <Route path="/login" element={<LoginPage />} />
-      </Route>
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/historical" element={<HistoricalPage />} />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route element={<AdminRoute />}>
-            <Route path="/settings" element={<SettingsPage />} />
+    <ErrorBoundary>
+      <Routes>
+        <Route element={<GuestOnlyRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/historical" element={<HistoricalPage />} />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
           </Route>
         </Route>
-      </Route>
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
