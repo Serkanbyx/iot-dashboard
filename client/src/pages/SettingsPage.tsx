@@ -7,6 +7,8 @@ import ThresholdCard, {
   type ThresholdFormValues,
 } from "../components/settings/ThresholdCard";
 import SystemStatus from "../components/settings/SystemStatus";
+import SettingsSkeleton from "../components/skeletons/SettingsSkeleton";
+import PageTransition from "../components/ui/PageTransition";
 
 const TYPE_ORDER: Record<string, number> = {
   TEMPERATURE: 0,
@@ -101,8 +103,10 @@ export default function SettingsPage() {
     [thresholds, applyUpdate]
   );
 
+  if (loading) return <SettingsSkeleton />;
+
   return (
-    <div className="flex flex-col gap-4">
+    <PageTransition className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
@@ -120,27 +124,21 @@ export default function SettingsPage() {
       </div>
 
       {/* Threshold cards */}
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-accent-blue border-t-transparent" />
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {thresholds.map((config) => (
-            <ThresholdCard
-              key={config.id}
-              config={config}
-              saving={savingType === config.sensorType}
-              toggling={togglingType === config.sensorType}
-              onSave={handleSave}
-              onToggleActive={handleToggleActive}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col gap-4">
+        {thresholds.map((config) => (
+          <ThresholdCard
+            key={config.id}
+            config={config}
+            saving={savingType === config.sensorType}
+            toggling={togglingType === config.sensorType}
+            onSave={handleSave}
+            onToggleActive={handleToggleActive}
+          />
+        ))}
+      </div>
 
       {/* System status panel */}
       <SystemStatus />
-    </div>
+    </PageTransition>
   );
 }

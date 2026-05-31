@@ -12,6 +12,7 @@ import FilterBar from "../components/historical/FilterBar";
 import HistoricalChart from "../components/historical/HistoricalChart";
 import StatsSummary from "../components/historical/StatsSummary";
 import type { DateRange } from "../components/historical/DateRangePicker";
+import PageTransition from "../components/ui/PageTransition";
 
 type AggregationWindow = "minute" | "hour";
 
@@ -100,7 +101,7 @@ export default function HistoricalPage() {
   }, [selectedSensor, selectedType, dateRange, window, rangeError]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <PageTransition className="flex flex-col gap-4">
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold">Historical Data</h1>
@@ -145,6 +146,6 @@ export default function HistoricalPage() {
           </p>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

@@ -19,16 +19,23 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 
   const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
   const [shaking, setShaking] = useState(false);
+  const [badgeBouncing, setBadgeBouncing] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const prevCountRef = useRef(0);
 
-  // Trigger shake when count increases
+  // Trigger shake + badge bounce when count increases
   useEffect(() => {
     if (unacknowledgedCount > prevCountRef.current) {
       setShaking(true);
-      const timer = setTimeout(() => setShaking(false), 600);
-      return () => clearTimeout(timer);
+      setBadgeBouncing(true);
+      const shakeTimer = setTimeout(() => setShaking(false), 600);
+      const bounceTimer = setTimeout(() => setBadgeBouncing(false), 300);
+      prevCountRef.current = unacknowledgedCount;
+      return () => {
+        clearTimeout(shakeTimer);
+        clearTimeout(bounceTimer);
+      };
     }
     prevCountRef.current = unacknowledgedCount;
   }, [unacknowledgedCount]);
@@ -122,7 +129,8 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
               className={cn(
                 "absolute -top-0.5 -right-0.5 flex items-center justify-center",
                 "min-w-5 h-5 px-1 rounded-full",
-                "bg-danger text-white text-xs font-bold"
+                "bg-danger text-white text-xs font-bold",
+                badgeBouncing && "animate-badge-bounce"
               )}
             >
               {unacknowledgedCount > 99 ? "99+" : unacknowledgedCount}

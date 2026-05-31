@@ -13,6 +13,7 @@ import AlertFilterBar, {
 import AlertList from "../components/alerts/AlertList";
 import Pagination from "../components/ui/Pagination";
 import ConfirmModal from "../components/ui/ConfirmModal";
+import PageTransition from "../components/ui/PageTransition";
 import { cn } from "../utils/cn";
 
 const PAGE_SIZE = 10;
@@ -211,7 +212,7 @@ export default function AlertsPage() {
   const hasUnacknowledged = (stats?.unacknowledged ?? 0) > 0;
 
   return (
-    <div className="flex flex-col gap-4">
+    <PageTransition className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Alerts</h1>
@@ -320,6 +321,6 @@ export default function AlertsPage() {
           />
         </label>
       </ConfirmModal>
-    </div>
+    </PageTransition>
   );
 }

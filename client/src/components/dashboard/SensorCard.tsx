@@ -115,7 +115,8 @@ export default function SensorCard({
       layout
       className={cn(
         "rounded-2xl glass border p-4 cursor-pointer",
-        "transition-colors duration-200",
+        "transition-all duration-200",
+        "hover:border-accent-blue/20",
         styles.border,
         styles.glow,
         styles.bg,

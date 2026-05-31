@@ -11,6 +11,8 @@ import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
 import AlertToast from "../components/alerts/AlertToast";
 import SensorGrid from "../components/dashboard/SensorGrid";
+import DashboardSkeleton from "../components/skeletons/DashboardSkeleton";
+import PageTransition from "../components/ui/PageTransition";
 
 const HISTORY_CAP = 60;
 
@@ -109,16 +111,10 @@ export default function DashboardPage() {
 
   const readingsList = useMemo(() => Array.from(readings.values()), [readings]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-accent-blue border-t-transparent" />
-      </div>
-    );
-  }
+  if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="flex flex-col gap-4">
+    <PageTransition className="flex flex-col gap-4">
       {/* Alert summary bar */}
       <AlertSummaryBar count={unacknowledgedCount} />
 
@@ -149,6 +145,6 @@ export default function DashboardPage() {
         thresholds={thresholds}
         selectedFloor={selectedFloor}
       />
-    </div>
+    </PageTransition>
   );
 }
