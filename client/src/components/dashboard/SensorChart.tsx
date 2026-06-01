@@ -8,7 +8,6 @@ import {
   Tooltip,
   ReferenceLine,
   ResponsiveContainer,
-  type TooltipProps,
 } from "recharts";
 import type { SensorReading, ThresholdConfig, SensorTypeValue } from "../../types";
 import { COLOR_MAP } from "./SensorSparkline";
@@ -50,11 +49,13 @@ function getStatus(
   return { label: "Normal", className: "text-success" };
 }
 
-function CustomTooltip({
-  active,
-  payload,
-  threshold,
-}: TooltipProps<number, string> & { threshold?: ThresholdConfig }) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint; value: number }>;
+  threshold?: ThresholdConfig;
+}
+
+function CustomTooltip({ active, payload, threshold }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   const point = payload[0].payload as ChartPoint;

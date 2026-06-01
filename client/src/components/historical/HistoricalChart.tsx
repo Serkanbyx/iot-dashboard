@@ -9,7 +9,6 @@ import {
   ReferenceLine,
   Brush,
   ResponsiveContainer,
-  type TooltipProps,
 } from "recharts";
 import { BarChart3 } from "lucide-react";
 import type {
@@ -55,11 +54,13 @@ function makeFormatter(spanMs: number) {
   };
 }
 
-function CustomTooltip({
-  active,
-  payload,
-  unit,
-}: TooltipProps<number, string> & { unit: string }) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint; value: number }>;
+  unit: string;
+}
+
+function CustomTooltip({ active, payload, unit }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   const point = payload[0].payload as ChartPoint;
