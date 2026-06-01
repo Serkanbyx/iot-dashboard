@@ -9,6 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import HistoricalPage from "./pages/HistoricalPage";
 import AlertsPage from "./pages/AlertsPage";
 import SettingsPage from "./pages/SettingsPage";
+import DevicesPage from "./pages/DevicesPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/alerts" element={<AlertsPage />} />
             <Route element={<AdminRoute />}>
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/devices" element={<DevicesPage />} />
             </Route>
           </Route>
         </Route>

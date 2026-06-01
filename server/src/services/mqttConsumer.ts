@@ -7,6 +7,24 @@ import type { SensorReading, SensorTypeValue } from "../types/sensor.js";
 
 const VALID_SENSOR_TYPES: SensorTypeValue[] = ["temperature", "humidity", "pressure"];
 
+let deviceCache: Set<string> | null = null;
+
+export async function refreshDeviceCache(): Promise<void> {
+  const devices = await prisma.device.findMany({
+    where: { isActive: true },
+    select: { sensorId: true },
+  });
+
+  deviceCache = devices.length > 0
+    ? new Set(devices.map((d) => d.sensorId))
+    : null;
+}
+
+function isDeviceAllowed(sensorId: string): boolean {
+  if (!deviceCache) return true;
+  return deviceCache.has(sensorId);
+}
+
 function isValidSensorReading(data: unknown): data is SensorReading {
   if (typeof data !== "object" || data === null) return false;
 
@@ -47,8 +65,10 @@ export function startMqttConsumer(io: Server): void {
 
   const wildcardTopic = `${topicRoot}/+/+/+`;
 
-  client.on("connect", () => {
+  client.on("connect", async () => {
     console.log(`[MQTT] Connected to ${brokerUrl}`);
+
+    await refreshDeviceCache();
 
     client.subscribe(wildcardTopic, { qos: 0 }, (err) => {
       if (err) {
@@ -65,6 +85,10 @@ export function startMqttConsumer(io: Server): void {
 
       if (!isValidSensorReading(data)) {
         console.warn("[MQTT] Invalid reading, skipping");
+        return;
+      }
+
+      if (!isDeviceAllowed(data.sensorId)) {
         return;
       }
 

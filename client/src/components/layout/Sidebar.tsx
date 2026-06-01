@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Bell,
   Sliders,
+  Cpu,
   ChevronLeft,
   ChevronRight,
   X,
@@ -31,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Historical", icon: TrendingUp, path: "/historical" },
   { label: "Alerts", icon: Bell, path: "/alerts" },
+  { label: "Devices", icon: Cpu, path: "/devices", adminOnly: true },
   { label: "Settings", icon: Sliders, path: "/settings", adminOnly: true },
 ];
 

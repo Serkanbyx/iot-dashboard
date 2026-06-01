@@ -20,3 +20,8 @@ export type {
   AlertsResponse,
   AlertFilters,
 } from "./alert";
+export type {
+  Device,
+  CreateDevicePayload,
+  UpdateDevicePayload,
+} from "./device";

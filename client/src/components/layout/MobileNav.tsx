@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, TrendingUp, Bell, Sliders } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Bell, Cpu, Sliders } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "../../utils/cn";
 
@@ -15,6 +15,7 @@ const NAV_ITEMS: MobileNavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Historical", icon: TrendingUp, path: "/historical" },
   { label: "Alerts", icon: Bell, path: "/alerts" },
+  { label: "Devices", icon: Cpu, path: "/devices", adminOnly: true },
   { label: "Settings", icon: Sliders, path: "/settings", adminOnly: true },
 ];
 

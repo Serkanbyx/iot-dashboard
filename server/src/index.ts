@@ -14,6 +14,7 @@ import authRoutes from "./routes/authRoutes.js";
 import thresholdRoutes from "./routes/thresholdRoutes.js";
 import sensorRoutes from "./routes/sensorRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
+import deviceRoutes from "./routes/deviceRoutes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -38,6 +39,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/thresholds", thresholdRoutes);
 app.use("/api/sensors", sensorRoutes);
 app.use("/api/alerts", alertRoutes);
+app.use("/api/devices", deviceRoutes);
 
 // --- Error Handler (must be last) ---
 app.use(errorHandler);

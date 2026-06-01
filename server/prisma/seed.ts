@@ -79,6 +79,37 @@ async function main(): Promise<void> {
     console.log(`[SEED] Threshold: ${config.sensorType} (${config.unit})`);
   }
 
+  // 3. Upsert default devices (matching simulator)
+  const devices = [
+    { sensorId: "sensor01", name: "Sensor 01", floor: "floor1" },
+    { sensorId: "sensor02", name: "Sensor 02", floor: "floor1" },
+    { sensorId: "sensor03", name: "Sensor 03", floor: "floor2" },
+    { sensorId: "sensor04", name: "Sensor 04", floor: "floor2" },
+    { sensorId: "sensor05", name: "Sensor 05", floor: "floor3" },
+    { sensorId: "sensor06", name: "Sensor 06", floor: "floor3" },
+  ];
+
+  const allTypes: ("TEMPERATURE" | "HUMIDITY" | "PRESSURE")[] = [
+    "TEMPERATURE",
+    "HUMIDITY",
+    "PRESSURE",
+  ];
+
+  for (const d of devices) {
+    const device = await prisma.device.upsert({
+      where: { sensorId: d.sensorId },
+      update: { name: d.name, floor: d.floor, types: allTypes },
+      create: {
+        sensorId: d.sensorId,
+        name: d.name,
+        floor: d.floor,
+        types: allTypes,
+        createdById: admin.id,
+      },
+    });
+    console.log(`[SEED] Device: ${device.name} (${device.sensorId})`);
+  }
+
   console.log("[SEED] Seeding complete");
 }
 

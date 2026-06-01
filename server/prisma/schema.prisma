@@ -41,6 +41,7 @@ model User {
 
   acknowledgedAlerts Alert[] @relation("AcknowledgedBy")
   thresholdConfigs   ThresholdConfig[] @relation("CreatedBy")
+  devices            Device[] @relation("DeviceCreatedBy")
 }
 
 model ThresholdConfig {
@@ -80,4 +81,21 @@ model Alert {
   @@index([createdAt(sort: Desc)])
   @@index([sensorId, sensorType, isAcknowledged])
   @@index([isAcknowledged, severity])
+}
+
+model Device {
+  id          String       @id @default(uuid())
+  sensorId    String       @unique @db.VarChar(50)
+  name        String       @db.VarChar(100)
+  floor       String       @db.VarChar(50)
+  types       SensorType[]
+  isActive    Boolean      @default(true)
+  createdById String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  createdBy User? @relation("DeviceCreatedBy", fields: [createdById], references: [id])
+
+  @@index([floor])
+  @@index([isActive])
 }
