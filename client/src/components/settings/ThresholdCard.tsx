@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Thermometer, Droplets, Gauge, Save, Loader2 } from "lucide-react";
 import type { ThresholdConfig } from "../../types";
 import RangeVisualizer from "./RangeVisualizer";
@@ -61,6 +61,8 @@ export default function ThresholdCard({
   };
   const Icon = meta.icon;
 
+  const configKey = `${config.criticalMin}:${config.minValue}:${config.maxValue}:${config.criticalMax}`;
+
   const [values, setValues] = useState<ThresholdFormValues>({
     criticalMin: config.criticalMin,
     minValue: config.minValue,
@@ -68,15 +70,16 @@ export default function ThresholdCard({
     criticalMax: config.criticalMax,
   });
 
-  // Re-sync local form when the persisted config changes (e.g. after save).
-  useEffect(() => {
+  const [prevKey, setPrevKey] = useState(configKey);
+  if (configKey !== prevKey) {
+    setPrevKey(configKey);
     setValues({
       criticalMin: config.criticalMin,
       minValue: config.minValue,
       maxValue: config.maxValue,
       criticalMax: config.criticalMax,
     });
-  }, [config.criticalMin, config.minValue, config.maxValue, config.criticalMax]);
+  }
 
   const error = useMemo(() => validate(values), [values]);
 

@@ -93,11 +93,11 @@ export default function AlertsPage() {
   }, [queryFilters]);
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlerts(); // eslint-disable-line react-hooks/set-state-in-effect -- fetch on mount/filter change
   }, [fetchAlerts]);
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(); // eslint-disable-line react-hooks/set-state-in-effect
   }, [fetchStats]);
 
   const handleFilterChange = useCallback(

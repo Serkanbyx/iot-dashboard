@@ -28,8 +28,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!token) {
-      setSocket(null);
-      setIsConnected(false);
+      setSocket(null); // eslint-disable-line react-hooks/set-state-in-effect -- clear on logout
+      setIsConnected(false); // eslint-disable-line react-hooks/set-state-in-effect
       return;
     }
 
@@ -58,6 +58,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSocketContext(): SocketContextValue {
   return useContext(SocketContext);
 }

@@ -230,31 +230,22 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 type ConnectionState = "connected" | "reconnecting" | "offline";
 
 function useConnectionState(isConnected: boolean): ConnectionState {
-  const [state, setState] = useState<ConnectionState>(
-    isConnected ? "connected" : "offline"
-  );
-  const disconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  const [prevConnected, setPrevConnected] = useState(isConnected);
+
+  if (isConnected !== prevConnected) {
+    setPrevConnected(isConnected);
+    if (isConnected) setTimedOut(false);
+  }
 
   useEffect(() => {
-    if (isConnected) {
-      if (disconnectTimer.current) {
-        clearTimeout(disconnectTimer.current);
-        disconnectTimer.current = null;
-      }
-      setState("connected");
-    } else {
-      setState("reconnecting");
-      disconnectTimer.current = setTimeout(() => {
-        setState("offline");
-      }, 5000);
-    }
-
-    return () => {
-      if (disconnectTimer.current) clearTimeout(disconnectTimer.current);
-    };
+    if (isConnected) return;
+    const timer = setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(timer);
   }, [isConnected]);
 
-  return state;
+  if (isConnected) return "connected";
+  return timedOut ? "offline" : "reconnecting";
 }
 
 const CONNECTION_CONFIG: Record<

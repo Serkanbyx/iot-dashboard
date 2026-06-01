@@ -27,25 +27,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
     () => localStorage.getItem("token")
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!localStorage.getItem("token"));
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) return;
+    if (verified) return;
 
+    let active = true;
     authService
       .getMe()
-      .then((res) => setUser(res.user))
-      .catch(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setToken(null);
-        setUser(null);
+      .then((res) => {
+        if (active) setUser(res.user);
       })
-      .finally(() => setLoading(false));
-  }, [token]);
+      .catch(() => {
+        if (active) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setToken(null);
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+          setVerified(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [token, verified]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.login({ email, password });
@@ -83,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {

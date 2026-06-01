@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { cn } from "../../utils/cn";
 
 export interface DateRange {
@@ -53,13 +53,16 @@ export default function DateRangePicker({
     return match?.label ?? null;
   }, [value]);
 
-  function handleQuickSelect(option: QuickOption) {
-    const now = Date.now();
-    onChange({
-      start: new Date(now - option.ms).toISOString(),
-      stop: new Date(now).toISOString(),
-    });
-  }
+  const handleQuickSelect = useCallback(
+    (option: QuickOption) => {
+      const now = Date.now();
+      onChange({
+        start: new Date(now - option.ms).toISOString(),
+        stop: new Date(now).toISOString(),
+      });
+    },
+    [onChange]
+  );
 
   return (
     <div className="flex flex-col gap-2">

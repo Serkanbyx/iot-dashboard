@@ -19,7 +19,7 @@ import type {
 } from "../../types";
 import { COLOR_MAP } from "../dashboard/SensorSparkline";
 import EmptyState from "../ui/EmptyState";
-import { cn } from "../../utils/cn";
+
 
 interface HistoricalChartProps {
   data: AggregatedReading[];
