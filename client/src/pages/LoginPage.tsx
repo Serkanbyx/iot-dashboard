@@ -1,15 +1,27 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Activity, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Activity,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  User,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../utils/cn";
 
+type AuthMode = "login" | "register";
+
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,15 +33,39 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
-      toast.success("Welcome back!");
+      if (mode === "login") {
+        await login(email, password);
+        toast.success("Welcome back!");
+      } else {
+        if (!name.trim()) {
+          toast.error("Name is required.");
+          setLoading(false);
+          return;
+        }
+        await register(name.trim(), email, password);
+        toast.success("Account created!");
+      }
       navigate("/", { replace: true });
     } catch {
-      toast.error("Invalid email or password.");
+      toast.error(
+        mode === "login"
+          ? "Invalid email or password."
+          : "Registration failed. Email may already be in use."
+      );
     } finally {
       setLoading(false);
     }
   }
+
+  function switchMode() {
+    setMode((prev) => (prev === "login" ? "register" : "login"));
+    setName("");
+    setEmail("");
+    setPassword("");
+    setShowPassword(false);
+  }
+
+  const isLogin = mode === "login";
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg-primary px-4">
@@ -51,7 +87,7 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Login card */}
+      {/* Auth card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -71,13 +107,52 @@ export default function LoginPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight">IoT Dashboard</h1>
             <p className="mt-1 text-sm text-text-secondary">
-              Sensor Monitoring Command Center
+              {isLogin
+                ? "Sensor Monitoring Command Center"
+                : "Create your account"}
             </p>
           </div>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <AnimatePresence mode="popLayout">
+            {/* Name (register only) */}
+            {!isLogin && (
+              <motion.div
+                key="name-field"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <label htmlFor="name" className="sr-only">
+                  Name
+                </label>
+                <div className="relative">
+                  <User
+                    size={18}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Full name"
+                    className={cn(
+                      "h-12 w-full rounded-xl pl-10 pr-4",
+                      "bg-bg-elevated border border-glass-border",
+                      "text-sm text-text-primary placeholder:text-text-muted",
+                      "outline-none transition-all duration-150",
+                      "focus:ring-2 focus:ring-accent-blue focus:border-accent-blue"
+                    )}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Email */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -98,7 +173,9 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@iot-dashboard.com"
+                placeholder={
+                  isLogin ? "admin@iot-dashboard.com" : "your@email.com"
+                }
                 className={cn(
                   "h-12 w-full rounded-xl pl-10 pr-4",
                   "bg-bg-elevated border border-glass-border",
@@ -128,9 +205,12 @@ export default function LoginPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={
+                  isLogin ? "Enter your password" : "Min 6 characters"
+                }
                 className={cn(
                   "h-12 w-full rounded-xl pl-10 pr-11",
                   "bg-bg-elevated border border-glass-border",
@@ -170,20 +250,39 @@ export default function LoginPage() {
             >
               {loading ? (
                 <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-              ) : (
+              ) : isLogin ? (
                 "Access Dashboard"
+              ) : (
+                "Create Account"
               )}
             </button>
           </motion.div>
         </form>
 
+        {/* Switch mode link */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-6 text-center text-sm text-text-secondary"
+        >
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          <button
+            type="button"
+            onClick={switchMode}
+            className="font-semibold text-accent-blue hover:text-accent-blue/80 transition-colors"
+          >
+            {isLogin ? "Sign up" : "Sign in"}
+          </button>
+        </motion.p>
+
         {/* Dev hint */}
-        {import.meta.env.DEV && (
+        {import.meta.env.DEV && isLogin && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 text-center text-xs text-text-muted"
+            className="mt-3 text-center text-xs text-text-muted"
           >
             Default: admin@iot-dashboard.com / admin123
           </motion.p>

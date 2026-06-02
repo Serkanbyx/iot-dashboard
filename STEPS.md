@@ -2134,7 +2134,7 @@ interface AlertsState {
 ```
 ┌────────────────────────────────────────┐
 │  Header: "Settings" [Admin badge]      │
-│  Subtitle: "Alert threshold config"   │
+│  Subtitle: "Alert threshold config"    │
 ├────────────────────────────────────────┤
 │  [ThresholdCard - Temperature]         │
 ├────────────────────────────────────────┤
@@ -2153,7 +2153,7 @@ interface AlertsState {
 **Design:**
 ```
 ┌──────────────────────────────────────────────┐
-│ [🌡️ Temperature]               [Active ◯━━] │
+│ [🌡️ Temperature]              [Active ◯━━] │
 ├──────────────────────────────────────────────┤
 │ [RangeVisualizer - colored bar]              │
 ├──────────────────────────────────────────────┤
