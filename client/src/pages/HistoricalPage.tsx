@@ -11,8 +11,10 @@ import type {
 import FilterBar from "../components/historical/FilterBar";
 import HistoricalChart from "../components/historical/HistoricalChart";
 import StatsSummary from "../components/historical/StatsSummary";
+import ExportMenu from "../components/historical/ExportMenu";
 import type { DateRange } from "../components/historical/DateRangePicker";
 import PageTransition from "../components/ui/PageTransition";
+import type { ExportMeta } from "../utils/exportData";
 
 type AggregationWindow = "minute" | "hour";
 
@@ -76,6 +78,18 @@ export default function HistoricalPage() {
     [thresholds, selectedType]
   );
 
+  const exportMeta = useMemo<ExportMeta>(
+    () => ({
+      sensorId: selectedSensor,
+      sensorType: selectedType,
+      unit: activeThreshold?.unit ?? "",
+      window,
+      start: dateRange.start,
+      stop: dateRange.stop,
+    }),
+    [selectedSensor, selectedType, activeThreshold, window, dateRange]
+  );
+
   const handleLoad = useCallback(async () => {
     if (!selectedSensor || rangeError) return;
 
@@ -103,11 +117,16 @@ export default function HistoricalPage() {
   return (
     <PageTransition className="flex flex-col gap-4">
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold">Historical Data</h1>
-        <p className="text-sm text-text-secondary mt-0.5">
-          Explore past sensor data
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Historical Data</h1>
+          <p className="text-sm text-text-secondary mt-0.5">
+            Explore past sensor data
+          </p>
+        </div>
+        {hasLoaded && data.length > 0 && (
+          <ExportMenu data={data} meta={exportMeta} />
+        )}
       </div>
 
       {/* Filter bar */}

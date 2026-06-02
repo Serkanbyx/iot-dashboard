@@ -29,7 +29,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token) {
       setSocket(null); // eslint-disable-line react-hooks/set-state-in-effect -- clear on logout
-      setIsConnected(false); // eslint-disable-line react-hooks/set-state-in-effect
+      setIsConnected(false);
       return;
     }
 
