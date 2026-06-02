@@ -40,6 +40,28 @@ export default function MainLayout() {
         >
           <Outlet />
         </div>
+
+        {/* Footer */}
+        <footer className="hidden md:flex items-center justify-center py-3 text-xs text-text-muted">
+          Created by{" "}
+          <a
+            href="https://serkanbayraktar.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-1 text-accent-blue hover:text-accent-blue/80 transition-colors"
+          >
+            Serkanby
+          </a>
+          <span className="mx-1.5">|</span>
+          <a
+            href="https://github.com/Serkanbyx"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-blue hover:text-accent-blue/80 transition-colors"
+          >
+            Github
+          </a>
+        </footer>
       </main>
 
       <MobileNav />

@@ -288,6 +288,28 @@ export default function LoginPage() {
           </motion.p>
         )}
       </motion.div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-0 right-0 z-10 flex items-center justify-center text-xs text-text-muted">
+        Created by{" "}
+        <a
+          href="https://serkanbayraktar.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-1 text-accent-blue hover:text-accent-blue/80 transition-colors"
+        >
+          Serkanby
+        </a>
+        <span className="mx-1.5">|</span>
+        <a
+          href="https://github.com/Serkanbyx"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-accent-blue hover:text-accent-blue/80 transition-colors"
+        >
+          Github
+        </a>
+      </footer>
     </div>
   );
 }
