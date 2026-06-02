@@ -172,4 +172,51 @@
   .animate-badge-bounce {
     animation: badge-bounce 0.3s ease-in-out;
   }
+
+  /* Breathing glow for threshold violations — animates box-shadow only,
+     so card content stays fully legible (unlike a full opacity pulse). */
+  @keyframes alert-glow-critical {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.35),
+        0 0 0 1px rgba(244, 63, 94, 0.35);
+    }
+    50% {
+      box-shadow: 0 0 26px rgba(244, 63, 94, 0.7),
+        0 0 0 1px rgba(244, 63, 94, 0.6);
+    }
+  }
+
+  @keyframes alert-glow-warning {
+    0%, 100% {
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+    }
+  }
+
+  .animate-alert-critical {
+    animation: alert-glow-critical 1.5s ease-in-out infinite;
+  }
+
+  .animate-alert-warning {
+    animation: alert-glow-warning 2.6s ease-in-out infinite;
+  }
+
+  @keyframes alert-icon-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+  }
+
+  .animate-alert-icon {
+    animation: alert-icon-pulse 1.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-alert-critical,
+    .animate-alert-warning,
+    .animate-alert-icon {
+      animation: none;
+    }
+  }
 }

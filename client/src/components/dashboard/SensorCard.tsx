@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Thermometer, Droplets, Gauge, ChevronDown } from "lucide-react";
+import {
+  Thermometer,
+  Droplets,
+  Gauge,
+  ChevronDown,
+  AlertTriangle,
+} from "lucide-react";
 import type { SensorReading, ThresholdConfig, SensorTypeValue } from "../../types";
 import AnimatedNumber from "../ui/AnimatedNumber";
 import SensorSparkline from "./SensorSparkline";
@@ -52,13 +58,13 @@ const ALERT_STYLES: Record<
 > = {
   normal: { border: "border-glass-border", glow: "", bg: "" },
   warning: {
-    border: "border-amber-500/30",
-    glow: "glow-amber",
+    border: "border-amber-500/40",
+    glow: "animate-alert-warning",
     bg: "bg-amber-500/5",
   },
   critical: {
-    border: "border-rose-500/50",
-    glow: "glow-rose",
+    border: "border-rose-500/60",
+    glow: "animate-alert-critical",
     bg: "bg-rose-500/10",
   },
 };
@@ -119,8 +125,7 @@ export default function SensorCard({
         "hover:border-accent-blue/20",
         styles.border,
         styles.glow,
-        styles.bg,
-        alertState === "critical" && "animate-pulse-slow"
+        styles.bg
       )}
       onClick={onExpand}
     >
@@ -131,6 +136,16 @@ export default function SensorCard({
           <span className="text-xs text-text-muted font-medium uppercase tracking-wider">
             {reading.type}
           </span>
+          {alertState !== "normal" && (
+            <AlertTriangle
+              size={14}
+              className={cn(
+                "animate-alert-icon",
+                alertState === "critical" ? "text-danger" : "text-warning"
+              )}
+              aria-label={`${alertState} threshold violation`}
+            />
+          )}
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-text-muted">{reading.sensorId}</span>
@@ -169,7 +184,7 @@ export default function SensorCard({
               className={cn(
                 "text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase",
                 alertState === "critical"
-                  ? "bg-danger/20 text-danger"
+                  ? "bg-danger/20 text-danger animate-alert-icon"
                   : "bg-warning/20 text-warning"
               )}
             >
