@@ -12,6 +12,7 @@ import AnimatedNumber from "../ui/AnimatedNumber";
 import SensorSparkline from "./SensorSparkline";
 import SensorChart from "./SensorChart";
 import { cn } from "../../utils/cn";
+import { getAlertState, type AlertState } from "../../utils/alertState";
 
 interface SensorCardProps {
   reading: SensorReading;
@@ -20,8 +21,6 @@ interface SensorCardProps {
   isExpanded: boolean;
   onExpand: () => void;
 }
-
-type AlertState = "normal" | "warning" | "critical";
 
 const SENSOR_CONFIG: Record<
   SensorTypeValue,
@@ -68,18 +67,6 @@ const ALERT_STYLES: Record<
     bg: "bg-rose-500/10",
   },
 };
-
-function getAlertState(
-  value: number,
-  threshold?: ThresholdConfig
-): AlertState {
-  if (!threshold || !threshold.isActive) return "normal";
-  if (value <= threshold.criticalMin || value >= threshold.criticalMax)
-    return "critical";
-  if (value <= threshold.minValue || value >= threshold.maxValue)
-    return "warning";
-  return "normal";
-}
 
 function useRelativeTime(timestamp: string) {
   const [text, setText] = useState("");

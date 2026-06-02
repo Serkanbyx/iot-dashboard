@@ -11,10 +11,19 @@ import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
 import AlertToast from "../components/alerts/AlertToast";
 import SensorGrid from "../components/dashboard/SensorGrid";
+import FloorPlan from "../components/dashboard/FloorPlan";
 import DashboardSkeleton from "../components/skeletons/DashboardSkeleton";
 import PageTransition from "../components/ui/PageTransition";
+import SegmentedControl from "../components/ui/SegmentedControl";
 
 const HISTORY_CAP = 60;
+
+type DashboardView = "grid" | "map";
+
+const VIEW_OPTIONS: { value: DashboardView; label: string }[] = [
+  { value: "grid", label: "Grid" },
+  { value: "map", label: "Map" },
+];
 
 function readingKey(sensorId: string, type: string) {
   return `${sensorId}-${type}`;
@@ -31,6 +40,7 @@ export default function DashboardPage() {
   );
   const [thresholds, setThresholds] = useState<ThresholdConfig[]>([]);
   const [selectedFloor, setSelectedFloor] = useState("all");
+  const [view, setView] = useState<DashboardView>("grid");
   const [loading, setLoading] = useState(true);
   const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
 
@@ -131,20 +141,35 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Floor tabs */}
-      <FloorTabs
-        tabs={floors}
-        activeTab={selectedFloor}
-        onTabChange={setSelectedFloor}
-      />
+      {/* Floor tabs + view toggle */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <FloorTabs
+          tabs={floors}
+          activeTab={selectedFloor}
+          onTabChange={setSelectedFloor}
+        />
+        <SegmentedControl
+          options={VIEW_OPTIONS}
+          value={view}
+          onChange={setView}
+        />
+      </div>
 
-      {/* Sensor grid */}
-      <SensorGrid
-        readings={readingsList}
-        history={history}
-        thresholds={thresholds}
-        selectedFloor={selectedFloor}
-      />
+      {/* Sensor view */}
+      {view === "grid" ? (
+        <SensorGrid
+          readings={readingsList}
+          history={history}
+          thresholds={thresholds}
+          selectedFloor={selectedFloor}
+        />
+      ) : (
+        <FloorPlan
+          readings={readingsList}
+          thresholds={thresholds}
+          selectedFloor={selectedFloor}
+        />
+      )}
     </PageTransition>
   );
 }
