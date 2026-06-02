@@ -1,5 +1,12 @@
 # IoT Sensor Dashboard — Step-by-Step Build Guide
 
+> **Archived: original build playbook.**
+> This document is the original step-by-step roadmap used to build the IoT Sensor Dashboard from scratch.
+> The codebase may have evolved since this guide was written — new features, refactors, and fixes may not be reflected here.
+> See [../README.md](../README.md) for current setup, architecture, and deployment notes.
+
+---
+
 > **Project Summary:**
 > A real-time IoT sensor monitoring dashboard that ingests telemetry data via MQTT protocol, stores time-series measurements in PostgreSQL, and displays live metrics with historical trends. The system includes a sensor simulator (no physical hardware required), threshold-based alerting with email notifications via Nodemailer, real-time dashboard updates via Socket.io, and interactive Recharts visualizations. Features JWT-based auth (admin/viewer roles), configurable alert thresholds per sensor type, and a hierarchical MQTT topic structure. Single PostgreSQL database handles both application data (via Prisma ORM) and time-series sensor data (via raw SQL with proper indexing and `date_trunc()` aggregation).
 
@@ -23,7 +30,87 @@
 
 ---
 
-## PHASE 1 — Backend Foundation
+## Table of Contents
+
+**PHASE 1 — Backend Foundation**
+- STEP 1 — Project Scaffolding & Dependency Setup
+- STEP 2 — Docker Mosquitto & MQTT Topic Architecture
+- STEP 3 — Environment Configuration & Database Setup
+- STEP 4 — Prisma Schema & Sensor Readings Table
+- STEP 5 — User Auth System & Admin Seed
+- STEP 6 — Sensor Simulator
+- STEP 7 — MQTT Consumer & PostgreSQL Writer
+- STEP 8 — Alert Model, Threshold Config & Seed Data
+- STEP 9 — Alert Engine & Email Service
+- STEP 10 — REST API: Sensor Data Endpoints
+- STEP 11 — REST API: Alert Endpoints
+- STEP 12 — Backend Validation Rules
+- STEP 13 — Security Audit & Backend Review
+
+**PHASE 2 — Client Foundation**
+- STEP 14 — Client Setup: Vite, TailwindCSS & Theme System
+- STEP 15 — Axios Instance, Service Files & Shared Types
+- STEP 16 — Contexts & Custom Hooks
+- STEP 17 — Main Layout & Responsive Shell
+- STEP 18 — Navbar: Connection Status, Alerts & User Menu
+- STEP 19 — Sidebar: Navigation & Active States
+- STEP 20 — App Routing & Route Guards
+
+**PHASE 3 — Pages**
+- STEP 21 — Login Page
+- STEP 22 — Dashboard Page: Layout & Data Flow
+- STEP 23 — Sensor Card Component
+- STEP 24 — Sensor Sparkline
+- STEP 25 — Sensor Full Chart (Expanded View)
+- STEP 26 — Sensor Grid & Real-Time Integration
+- STEP 27 — Alert Toast Component
+- STEP 28 — Historical Page: Filters & Date Range
+- STEP 29 — Historical Chart & Stats Summary
+- STEP 30 — Alerts Page: Stats & Filter Bar
+- STEP 31 — Alert List & Acknowledge Flow
+- STEP 32 — Settings Page: Threshold Cards
+- STEP 33 — Range Visualizer & System Status
+- STEP 34 — Reusable UI Components
+- STEP 35 — Loading Skeletons & Micro-Interactions
+- STEP 36 — Dark/Light Mode Polish & Responsive Audit
+- STEP 37 — 404 Page & Error Boundaries
+
+**PHASE 4 — Finalization**
+- STEP 38 — README & Documentation
+- STEP 39 — Code Cleanup, Pre-Deploy Review & Deployment
+
+---
+
+## Global Build Rules (apply to EVERY step)
+
+- **Do not** run any `git` commands. Version control is handled manually by the developer.
+- **Do not** install packages or dependencies unless the step explicitly requires them.
+- **Do not** run long-running processes (dev servers, simulators) unless the step specifically requests it.
+- Treat every step as self-contained — read only the current step's instructions before implementing.
+- All code must pass `tsc --noEmit` after each step.
+- Use English for all code identifiers, filenames, and technical terms.
+
+---
+
+## Architecture at a Glance
+
+```mermaid
+flowchart LR
+    SIM["Sensor Simulator<br/>(mqtt.js)"] -->|MQTT publish| BROKER["MQTT Broker<br/>(Mosquitto / HiveMQ)"]
+    BROKER -->|MQTT subscribe| CONSUMER["MQTT Consumer<br/>(Node.js)"]
+    CONSUMER --> DB[("PostgreSQL<br/>(Neon)")]
+    CONSUMER --> ALERT["Alert Engine"]
+    ALERT --> DB
+    ALERT -->|critical| EMAIL["Nodemailer<br/>(Gmail SMTP)"]
+    ALERT -->|socket.io| CLIENT["React Dashboard<br/>(Vite + TailwindCSS)"]
+    CONSUMER -->|socket.io| CLIENT
+    CLIENT -->|REST API| API["Express 5 API<br/>(Prisma ORM)"]
+    API --> DB
+```
+
+---
+
+# PHASE 1 — Backend Foundation
 
 ---
 
@@ -1031,7 +1118,7 @@ export const validate = (req: Request, res: Response, next: NextFunction): void 
 
 ---
 
-## PHASE 2 — Client Foundation
+# PHASE 2 — Client Foundation
 
 ---
 
@@ -1469,7 +1556,7 @@ Provider order: BrowserRouter → ThemeProvider → AuthProvider → SocketProvi
 
 ---
 
-## PHASE 3 — Pages
+# PHASE 3 — Pages
 
 ---
 
@@ -2458,7 +2545,7 @@ Verify the connection status indicator handles all states smoothly:
 
 ---
 
-## PHASE 4 — Finalization
+# PHASE 4 — Finalization
 
 ---
 
