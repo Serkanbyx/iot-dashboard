@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Eye } from "lucide-react";
 import * as thresholdService from "../api/thresholdService";
+import { useAuth } from "../contexts/AuthContext";
 import type { ThresholdConfig } from "../types";
 import ThresholdCard, {
   type ThresholdFormValues,
@@ -23,6 +24,7 @@ function sortByType(list: ThresholdConfig[]): ThresholdConfig[] {
 }
 
 export default function SettingsPage() {
+  const { isAdmin } = useAuth();
   const [thresholds, setThresholds] = useState<ThresholdConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingType, setSavingType] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function SettingsPage() {
 
   const handleSave = useCallback(
     async (sensorType: string, values: ThresholdFormValues) => {
+      if (!isAdmin) return;
       setSavingType(sensorType);
       try {
         const { threshold } = await thresholdService.updateThreshold(
@@ -69,11 +72,12 @@ export default function SettingsPage() {
         setSavingType(null);
       }
     },
-    [applyUpdate]
+    [applyUpdate, isAdmin]
   );
 
   const handleToggleActive = useCallback(
     async (sensorType: string, isActive: boolean) => {
+      if (!isAdmin) return;
       const current = thresholds.find((t) => t.sensorType === sensorType);
       if (!current) return;
 
@@ -100,7 +104,7 @@ export default function SettingsPage() {
         setTogglingType(null);
       }
     },
-    [thresholds, applyUpdate]
+    [thresholds, applyUpdate, isAdmin]
   );
 
   if (loading) return <SettingsSkeleton />;
@@ -112,13 +116,22 @@ export default function SettingsPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Settings</h1>
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-violet/15 text-accent-violet text-xs font-semibold">
-              <ShieldCheck size={13} />
-              Admin
-            </span>
+            {isAdmin ? (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-violet/15 text-accent-violet text-xs font-semibold">
+                <ShieldCheck size={13} />
+                Admin
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-bg-elevated text-text-muted text-xs font-semibold">
+                <Eye size={13} />
+                Read-only
+              </span>
+            )}
           </div>
           <p className="text-sm text-text-muted mt-1">
-            Alert threshold configuration
+            {isAdmin
+              ? "Alert threshold configuration"
+              : "Alert threshold configuration — view only"}
           </p>
         </div>
       </div>
@@ -131,6 +144,7 @@ export default function SettingsPage() {
             config={config}
             saving={savingType === config.sensorType}
             toggling={togglingType === config.sensorType}
+            readOnly={!isAdmin}
             onSave={handleSave}
             onToggleActive={handleToggleActive}
           />

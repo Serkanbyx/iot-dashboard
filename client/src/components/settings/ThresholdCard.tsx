@@ -15,6 +15,7 @@ interface ThresholdCardProps {
   config: ThresholdConfig;
   saving: boolean;
   toggling: boolean;
+  readOnly?: boolean;
   onSave: (sensorType: string, values: ThresholdFormValues) => void;
   onToggleActive: (sensorType: string, isActive: boolean) => void;
 }
@@ -51,6 +52,7 @@ export default function ThresholdCard({
   config,
   saving,
   toggling,
+  readOnly = false,
   onSave,
   onToggleActive,
 }: ThresholdCardProps) {
@@ -98,7 +100,7 @@ export default function ThresholdCard({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (error || !isDirty || saving) return;
+    if (readOnly || error || !isDirty || saving) return;
     onSave(config.sensorType, values);
   }
 
@@ -128,8 +130,10 @@ export default function ThresholdCard({
             role="switch"
             aria-checked={config.isActive}
             aria-label={`Toggle ${meta.label} monitoring`}
-            disabled={toggling}
-            onClick={() => onToggleActive(config.sensorType, !config.isActive)}
+            disabled={toggling || readOnly}
+            onClick={() =>
+              !readOnly && onToggleActive(config.sensorType, !config.isActive)
+            }
             className={cn(
               "relative h-6 w-11 rounded-full transition-colors duration-200 shrink-0",
               "disabled:opacity-50 disabled:pointer-events-none",
@@ -167,9 +171,11 @@ export default function ThresholdCard({
                 step="any"
                 value={values[field.key]}
                 onChange={(e) => handleChange(field.key, e.target.value)}
+                disabled={readOnly}
                 className={cn(
                   "w-full h-9 px-3 pr-10 rounded-lg bg-bg-elevated border outline-none",
                   "text-text-primary transition-colors",
+                  "disabled:opacity-60 disabled:cursor-not-allowed",
                   error
                     ? "border-danger/50 focus:border-danger"
                     : "border-glass-border focus:border-accent-blue"
@@ -187,24 +193,26 @@ export default function ThresholdCard({
       {error && <p className="text-xs text-danger">{error}</p>}
 
       {/* Save */}
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={!!error || !isDirty || saving}
-          className={cn(
-            "flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold text-white",
-            "bg-accent-blue hover:bg-accent-blue/90 transition-colors duration-150",
-            "disabled:opacity-50 disabled:pointer-events-none"
-          )}
-        >
-          {saving ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Save size={16} />
-          )}
-          Save Changes
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={!!error || !isDirty || saving}
+            className={cn(
+              "flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold text-white",
+              "bg-accent-blue hover:bg-accent-blue/90 transition-colors duration-150",
+              "disabled:opacity-50 disabled:pointer-events-none"
+            )}
+          >
+            {saving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            Save Changes
+          </button>
+        </div>
+      )}
     </form>
   );
 }

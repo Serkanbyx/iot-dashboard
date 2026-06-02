@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
   ShieldCheck,
+  Eye,
   Plus,
   Pencil,
   Trash2,
@@ -9,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import * as deviceService from "../api/deviceService";
+import { useAuth } from "../contexts/AuthContext";
 import type { Device, CreateDevicePayload, UpdateDevicePayload } from "../types";
 import PageTransition from "../components/ui/PageTransition";
 import GlassCard from "../components/ui/GlassCard";
@@ -41,6 +43,7 @@ const EMPTY_FORM: DeviceFormData = {
 };
 
 export default function DevicesPage() {
+  const { isAdmin } = useAuth();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -99,6 +102,7 @@ export default function DevicesPage() {
   }, []);
 
   const handleSave = useCallback(async () => {
+    if (!isAdmin) return;
     if (!form.sensorId.trim() || !form.name.trim() || !form.floor.trim()) {
       toast.error("All fields are required.");
       return;
@@ -140,10 +144,11 @@ export default function DevicesPage() {
     } finally {
       setSaving(false);
     }
-  }, [form, editingDevice]);
+  }, [form, editingDevice, isAdmin]);
 
   const handleToggleActive = useCallback(
     async (device: Device) => {
+      if (!isAdmin) return;
       setTogglingId(device.id);
       const newActive = !device.isActive;
       setDevices((prev) =>
@@ -165,11 +170,11 @@ export default function DevicesPage() {
         setTogglingId(null);
       }
     },
-    []
+    [isAdmin]
   );
 
   const handleDelete = useCallback(async () => {
-    if (!deleteTarget) return;
+    if (!isAdmin || !deleteTarget) return;
     setDeleting(true);
     try {
       await deviceService.deleteDevice(deleteTarget.id);
@@ -181,7 +186,7 @@ export default function DevicesPage() {
     } finally {
       setDeleting(false);
     }
-  }, [deleteTarget]);
+  }, [deleteTarget, isAdmin]);
 
   if (loading) {
     return (
@@ -198,26 +203,37 @@ export default function DevicesPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Devices</h1>
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-violet/15 text-accent-violet text-xs font-semibold">
-              <ShieldCheck size={13} />
-              Admin
-            </span>
+            {isAdmin ? (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-violet/15 text-accent-violet text-xs font-semibold">
+                <ShieldCheck size={13} />
+                Admin
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-bg-elevated text-text-muted text-xs font-semibold">
+                <Eye size={13} />
+                Read-only
+              </span>
+            )}
           </div>
           <p className="text-sm text-text-muted mt-1">
-            Manage registered IoT sensors
+            {isAdmin
+              ? "Manage registered IoT sensors"
+              : "Registered IoT sensors — view only"}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className={cn(
-            "flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold text-white",
-            "bg-accent-blue hover:bg-accent-blue/90 transition-colors duration-150"
-          )}
-        >
-          <Plus size={16} />
-          Add Device
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className={cn(
+              "flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold text-white",
+              "bg-accent-blue hover:bg-accent-blue/90 transition-colors duration-150"
+            )}
+          >
+            <Plus size={16} />
+            Add Device
+          </button>
+        )}
       </div>
 
       {/* Device List */}
@@ -270,30 +286,38 @@ export default function DevicesPage() {
                   </div>
                 </div>
 
-                {/* Right: actions */}
+                {/* Right: actions (admin) or status (read-only) */}
                 <div className="flex items-center gap-3">
-                  <Toggle
-                    checked={device.isActive}
-                    onChange={() => handleToggleActive(device)}
-                    disabled={togglingId === device.id}
-                    label={`Toggle ${device.name}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => openEdit(device)}
-                    className="p-2 rounded-lg text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors focus-ring"
-                    aria-label={`Edit ${device.name}`}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(device)}
-                    className="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors focus-ring"
-                    aria-label={`Delete ${device.name}`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin ? (
+                    <>
+                      <Toggle
+                        checked={device.isActive}
+                        onChange={() => handleToggleActive(device)}
+                        disabled={togglingId === device.id}
+                        label={`Toggle ${device.name}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => openEdit(device)}
+                        className="p-2 rounded-lg text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors focus-ring"
+                        aria-label={`Edit ${device.name}`}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(device)}
+                        className="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors focus-ring"
+                        aria-label={`Delete ${device.name}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <Badge variant={device.isActive ? "success" : "danger"}>
+                      {device.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </GlassCard>
