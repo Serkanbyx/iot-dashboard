@@ -1,4 +1,4 @@
-import { query } from "express-validator";
+import { body, query } from "express-validator";
 
 export const getAlertsRules = [
   query("page")
@@ -34,6 +34,16 @@ export const getAlertsRules = [
     .optional()
     .isIn(["asc", "desc"])
     .withMessage("order must be asc or desc"),
+];
+
+export const acknowledgeRules = [
+  body("note")
+    .optional({ nullable: true })
+    .isString()
+    .withMessage("note must be a string")
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage("note max 500 characters"),
 ];
 
 export const cleanupRules = [

@@ -110,12 +110,16 @@ export const acknowledgeAlert = async (
       return;
     }
 
+    const rawNote = typeof req.body?.note === "string" ? req.body.note.trim() : "";
+    const note = rawNote.length > 0 ? rawNote : null;
+
     const alert = await prisma.alert.update({
       where: { id: alertId },
       data: {
         isAcknowledged: true,
         acknowledgedById: req.user!.id,
         acknowledgedAt: new Date(),
+        acknowledgeNote: note,
       },
     });
 

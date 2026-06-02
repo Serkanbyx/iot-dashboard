@@ -11,6 +11,7 @@ export interface Alert {
   isAcknowledged: boolean;
   acknowledgedById: string | null;
   acknowledgedAt: string | null;
+  acknowledgeNote: string | null;
   emailSent: boolean;
   createdAt: string;
 }

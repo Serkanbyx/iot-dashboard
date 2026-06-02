@@ -44,6 +44,8 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true);
 
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
+  const [acknowledgeTarget, setAcknowledgeTarget] = useState<Alert | null>(null);
+  const [noteInput, setNoteInput] = useState("");
   const [confirmAllOpen, setConfirmAllOpen] = useState(false);
   const [acknowledgingAll, setAcknowledgingAll] = useState(false);
   const [cleanupOpen, setCleanupOpen] = useState(false);
@@ -108,33 +110,50 @@ export default function AlertsPage() {
     []
   );
 
-  // --- Single acknowledge with optimistic update ---
-  const handleAcknowledge = useCallback(
-    async (id: string) => {
-      setAcknowledgingId(id);
-      const previous = alerts;
-      setAlerts((prev) =>
-        prev.map((a) =>
-          a.id === id
-            ? { ...a, isAcknowledged: true, acknowledgedAt: new Date().toISOString() }
-            : a
-        )
-      );
-
-      try {
-        const { alert } = await alertService.acknowledgeAlert(id);
-        setAlerts((prev) => prev.map((a) => (a.id === id ? alert : a)));
-        toast.success("Alert acknowledged.");
-        fetchStats();
-      } catch {
-        setAlerts(previous);
-        toast.error("Failed to acknowledge alert.");
-      } finally {
-        setAcknowledgingId(null);
-      }
+  // --- Open the acknowledge modal for a given alert ---
+  const requestAcknowledge = useCallback(
+    (id: string) => {
+      const target = alerts.find((a) => a.id === id) ?? null;
+      setAcknowledgeTarget(target);
+      setNoteInput("");
     },
-    [alerts, fetchStats]
+    [alerts]
   );
+
+  // --- Single acknowledge with optional note + optimistic update ---
+  const confirmAcknowledge = useCallback(async () => {
+    if (!acknowledgeTarget) return;
+    const id = acknowledgeTarget.id;
+    const note = noteInput.trim();
+
+    setAcknowledgingId(id);
+    const previous = alerts;
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              isAcknowledged: true,
+              acknowledgedAt: new Date().toISOString(),
+              acknowledgeNote: note || null,
+            }
+          : a
+      )
+    );
+
+    try {
+      const { alert } = await alertService.acknowledgeAlert(id, note || undefined);
+      setAlerts((prev) => prev.map((a) => (a.id === id ? alert : a)));
+      toast.success("Alert acknowledged.");
+      setAcknowledgeTarget(null);
+      fetchStats();
+    } catch {
+      setAlerts(previous);
+      toast.error("Failed to acknowledge alert.");
+    } finally {
+      setAcknowledgingId(null);
+    }
+  }, [acknowledgeTarget, noteInput, alerts, fetchStats]);
 
   // --- Acknowledge all (admin) ---
   const handleAcknowledgeAll = useCallback(async () => {
@@ -262,7 +281,7 @@ export default function AlertsPage() {
         loading={loading}
         canAcknowledge={isAdmin}
         acknowledgingId={acknowledgingId}
-        onAcknowledge={handleAcknowledge}
+        onAcknowledge={requestAcknowledge}
       />
 
       {/* Footer: count + pagination */}
@@ -278,6 +297,36 @@ export default function AlertsPage() {
           </p>
         </div>
       )}
+
+      {/* Single acknowledge with optional note */}
+      <ConfirmModal
+        open={acknowledgeTarget !== null}
+        title="Acknowledge alert"
+        message="Optionally add a note for the audit trail before acknowledging."
+        confirmLabel="Acknowledge"
+        variant="primary"
+        loading={acknowledgingId !== null}
+        onConfirm={confirmAcknowledge}
+        onCancel={() => setAcknowledgeTarget(null)}
+      >
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="text-text-secondary">Note (optional)</span>
+          <textarea
+            value={noteInput}
+            onChange={(e) => setNoteInput(e.target.value.slice(0, 500))}
+            rows={3}
+            maxLength={500}
+            placeholder="e.g. Investigated — sensor recalibrated."
+            className={cn(
+              "px-3 py-2 rounded-lg resize-none bg-bg-elevated border border-glass-border",
+              "text-text-primary outline-none focus:border-accent-blue"
+            )}
+          />
+          <span className="text-[10px] text-text-muted self-end">
+            {noteInput.length}/500
+          </span>
+        </label>
+      </ConfirmModal>
 
       {/* Acknowledge-all confirmation */}
       <ConfirmModal

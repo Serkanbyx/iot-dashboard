@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Mail, Check, Loader2 } from "lucide-react";
+import { Mail, Check, Loader2, MessageSquareText } from "lucide-react";
 import type { Alert } from "../../types";
 import { useRelativeTime } from "../../hooks/useRelativeTime";
 import SeverityBadge from "./SeverityBadge";
@@ -57,6 +57,19 @@ export default function AlertItem({
 
         {/* Row 2: message */}
         <p className="text-sm text-text-primary mt-1.5">{alert.message}</p>
+
+        {/* Acknowledge note */}
+        {isAck && alert.acknowledgeNote && (
+          <div className="flex items-start gap-1.5 mt-2 rounded-lg bg-bg-elevated px-2.5 py-1.5">
+            <MessageSquareText
+              size={13}
+              className="mt-0.5 shrink-0 text-text-muted"
+            />
+            <p className="text-xs text-text-secondary italic break-words">
+              {alert.acknowledgeNote}
+            </p>
+          </div>
+        )}
 
         {/* Row 3: footer */}
         <div className="flex items-center justify-between gap-2 mt-2">

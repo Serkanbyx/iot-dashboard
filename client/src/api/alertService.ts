@@ -11,8 +11,14 @@ export async function getAlertStats(): Promise<AlertStats> {
   return data;
 }
 
-export async function acknowledgeAlert(alertId: string): Promise<{ alert: Alert }> {
-  const { data } = await api.patch<{ alert: Alert }>(`/alerts/${alertId}/acknowledge`);
+export async function acknowledgeAlert(
+  alertId: string,
+  note?: string
+): Promise<{ alert: Alert }> {
+  const { data } = await api.patch<{ alert: Alert }>(
+    `/alerts/${alertId}/acknowledge`,
+    note ? { note } : undefined
+  );
   return data;
 }
 

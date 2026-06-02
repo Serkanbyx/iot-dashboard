@@ -73,6 +73,7 @@ model Alert {
   isAcknowledged   Boolean    @default(false)
   acknowledgedById String?
   acknowledgedAt   DateTime?
+  acknowledgeNote  String?    @db.VarChar(500)
   emailSent        Boolean    @default(false)
   createdAt        DateTime   @default(now())
 

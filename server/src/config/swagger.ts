@@ -170,6 +170,24 @@ const swaggerDocument = {
         tags: ["Alerts"],
         summary: "Acknowledge a single alert (admin)",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  note: {
+                    type: "string",
+                    maxLength: 500,
+                    description: "Optional acknowledgement note for the audit trail",
+                    example: "Investigated — sensor recalibrated.",
+                  },
+                },
+              },
+            },
+          },
+        },
         responses: {
           "200": { description: "Updated alert" },
           "403": { description: "Admin access required" },
