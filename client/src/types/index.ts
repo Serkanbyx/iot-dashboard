@@ -14,6 +14,7 @@ export type {
 } from "./sensor";
 export type {
   Alert,
+  AlertAcknowledgedPayload,
   AlertStats,
   ThresholdConfig,
   Pagination,

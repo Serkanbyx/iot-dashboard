@@ -1,5 +1,4 @@
-import type { SensorTypeValue } from "./sensor.js";
-
+export type SensorTypeEnum = "TEMPERATURE" | "HUMIDITY" | "PRESSURE";
 export type SeverityValue = "WARNING" | "CRITICAL";
 export type DirectionValue = "ABOVE" | "BELOW";
 
@@ -7,7 +6,7 @@ export interface AlertPayload {
   id: string;
   sensorId: string;
   floor: string;
-  sensorType: SensorTypeValue;
+  sensorType: SensorTypeEnum;
   value: number;
   threshold: number;
   severity: SeverityValue;

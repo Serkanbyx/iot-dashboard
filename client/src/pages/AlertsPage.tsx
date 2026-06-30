@@ -5,7 +5,12 @@ import { useAuth } from "../contexts/AuthContext";
 import { useDebounce } from "../hooks/useDebounce";
 import { useSocket } from "../hooks/useSocket";
 import * as alertService from "../api/alertService";
-import type { Alert, AlertStats as AlertStatsData, AlertFilters } from "../types";
+import type {
+  Alert,
+  AlertAcknowledgedPayload,
+  AlertStats as AlertStatsData,
+  AlertFilters,
+} from "../types";
 import AlertStats from "../components/alerts/AlertStats";
 import AlertFilterBar, {
   type AlertFilterValues,
@@ -218,15 +223,28 @@ export default function AlertsPage() {
 
   // --- Real-time: alert acknowledged elsewhere ---
   const handleAlertAcknowledged = useCallback(
-    (alert: Alert) => {
-      setAlerts((prev) => prev.map((a) => (a.id === alert.id ? alert : a)));
+    (payload: AlertAcknowledgedPayload) => {
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.id === payload.alertId
+            ? {
+                ...a,
+                isAcknowledged: true,
+                acknowledgedAt: a.acknowledgedAt ?? new Date().toISOString(),
+              }
+            : a
+        )
+      );
       fetchStats();
     },
     [fetchStats]
   );
 
   useSocket<Alert>("alert:new", handleNewAlert);
-  useSocket<Alert>("alert:acknowledged", handleAlertAcknowledged);
+  useSocket<AlertAcknowledgedPayload>(
+    "alert:acknowledged",
+    handleAlertAcknowledged
+  );
 
   const hasUnacknowledged = (stats?.unacknowledged ?? 0) > 0;
 

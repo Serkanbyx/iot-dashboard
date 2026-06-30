@@ -165,7 +165,10 @@ export const deleteOldAlerts = async (
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const result = await prisma.alert.deleteMany({
-      where: { createdAt: { lt: cutoff } },
+      where: {
+        createdAt: { lt: cutoff },
+        isAcknowledged: true,
+      },
     });
 
     res.json({ deleted: result.count, olderThan: `${days} days` });

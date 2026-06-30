@@ -57,3 +57,9 @@ export interface AlertFilters {
   sort?: string;
   order?: string;
 }
+
+/** Payload emitted by the server on `alert:acknowledged` socket event. */
+export interface AlertAcknowledgedPayload {
+  alertId: string;
+  acknowledgedBy: string;
+}

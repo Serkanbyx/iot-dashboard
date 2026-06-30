@@ -113,7 +113,7 @@ export async function processReading(reading: SensorReading, io: Server): Promis
     id: alert.id,
     sensorId: alert.sensorId,
     floor: alert.floor,
-    sensorType: reading.type,
+    sensorType: alert.sensorType,
     value: alert.value,
     threshold: alert.threshold,
     severity: alert.severity,
