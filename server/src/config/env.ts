@@ -22,7 +22,15 @@ export interface EnvConfig {
   SMTP_PASS: string;
   ALERT_EMAIL_FROM: string;
   ALERT_EMAIL_TO: string;
+  ALLOW_REGISTRATION: boolean;
 }
+
+function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (value === undefined || value === "") return defaultValue;
+  return value === "true" || value === "1";
+}
+
+const MIN_JWT_SECRET_LENGTH = 32;
 
 function loadConfig(): EnvConfig {
   const env = process.env;
@@ -34,8 +42,10 @@ function loadConfig(): EnvConfig {
   const nodeEnv = (env.NODE_ENV ?? "development") as EnvConfig["NODE_ENV"];
   const jwtSecret = env.JWT_SECRET ?? "";
 
-  if (nodeEnv === "production" && jwtSecret.length < 32) {
-    throw new Error("JWT_SECRET must be at least 32 characters in production");
+  if (jwtSecret.length < MIN_JWT_SECRET_LENGTH) {
+    throw new Error(
+      `JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters`
+    );
   }
 
   return {
@@ -55,6 +65,10 @@ function loadConfig(): EnvConfig {
     SMTP_PASS: env.SMTP_PASS ?? "",
     ALERT_EMAIL_FROM: env.ALERT_EMAIL_FROM ?? "",
     ALERT_EMAIL_TO: env.ALERT_EMAIL_TO ?? "",
+    ALLOW_REGISTRATION: parseBoolean(
+      env.ALLOW_REGISTRATION,
+      nodeEnv !== "production"
+    ),
   };
 }
 

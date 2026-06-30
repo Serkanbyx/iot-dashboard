@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, getMe, updateProfile, changePassword } from "../controllers/authController.js";
+import { register, login, getMe, getAuthConfig, updateProfile, changePassword } from "../controllers/authController.js";
 import { protect } from "../middlewares/auth.js";
 import { authLimiter } from "../middlewares/rateLimiter.js";
 import { validate } from "../middlewares/validate.js";
@@ -7,6 +7,7 @@ import { registerRules, loginRules, updateProfileRules, changePasswordRules } fr
 
 const router = Router();
 
+router.get("/config", getAuthConfig);
 router.post("/register", authLimiter, registerRules, validate, register);
 router.post("/login", authLimiter, loginRules, validate, login);
 router.get("/me", protect, getMe);

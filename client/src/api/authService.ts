@@ -13,6 +13,11 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
   return data;
 }
 
+export async function getAuthConfig(): Promise<{ registrationAllowed: boolean }> {
+  const { data } = await api.get<{ registrationAllowed: boolean }>("/auth/config");
+  return data;
+}
+
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   const { data } = await api.post<AuthResponse>("/auth/register", payload);
   return data;

@@ -1,9 +1,17 @@
 import type { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import prisma from "../config/database.js";
+import config from "../config/env.js";
 import { generateToken } from "../utils/generateToken.js";
 
 const BCRYPT_ROUNDS = 12;
+
+export const getAuthConfig = (
+  _req: Request,
+  res: Response
+): void => {
+  res.json({ registrationAllowed: config.ALLOW_REGISTRATION });
+};
 
 export const register = async (
   req: Request,
@@ -11,6 +19,11 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    if (!config.ALLOW_REGISTRATION) {
+      res.status(403).json({ error: "Registration is currently disabled" });
+      return;
+    }
+
     const { name, email, password } = req.body;
 
     const existing = await prisma.user.findUnique({ where: { email } });

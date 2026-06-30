@@ -7,7 +7,7 @@ import type { SensorReading, SensorTypeValue } from "../types/sensor.js";
 
 const VALID_SENSOR_TYPES: SensorTypeValue[] = ["temperature", "humidity", "pressure"];
 
-let deviceCache: Set<string> | null = null;
+let deviceCache: Set<string> = new Set();
 
 export async function refreshDeviceCache(): Promise<void> {
   const devices = await prisma.device.findMany({
@@ -15,13 +15,10 @@ export async function refreshDeviceCache(): Promise<void> {
     select: { sensorId: true },
   });
 
-  deviceCache = devices.length > 0
-    ? new Set(devices.map((d) => d.sensorId))
-    : null;
+  deviceCache = new Set(devices.map((d) => d.sensorId));
 }
 
 function isDeviceAllowed(sensorId: string): boolean {
-  if (!deviceCache) return true;
   return deviceCache.has(sensorId);
 }
 

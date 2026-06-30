@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
+import * as authService from "../api/authService";
 import { cn } from "../utils/cn";
 
 type AuthMode = "login" | "register";
@@ -26,6 +27,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [registrationAllowed, setRegistrationAllowed] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    authService
+      .getAuthConfig()
+      .then(({ registrationAllowed: allowed }) => {
+        if (active) setRegistrationAllowed(allowed);
+      })
+      .catch(() => {
+        if (active) setRegistrationAllowed(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!registrationAllowed && mode === "register") {
+      setMode("login");
+    }
+  }, [registrationAllowed, mode]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -46,12 +71,17 @@ export default function LoginPage() {
         toast.success("Account created!");
       }
       navigate("/", { replace: true });
-    } catch {
-      toast.error(
-        mode === "login"
-          ? "Invalid email or password."
-          : "Registration failed. Email may already be in use."
-      );
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (mode === "register" && status === 403) {
+        toast.error("Registration is currently disabled.");
+      } else {
+        toast.error(
+          mode === "login"
+            ? "Invalid email or password."
+            : "Registration failed. Email may already be in use."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -260,21 +290,23 @@ export default function LoginPage() {
         </form>
 
         {/* Switch mode link */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="mt-6 text-center text-sm text-text-secondary"
-        >
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button
-            type="button"
-            onClick={switchMode}
-            className="font-semibold text-accent-blue hover:text-accent-blue/80 transition-colors"
+        {registrationAllowed && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-6 text-center text-sm text-text-secondary"
           >
-            {isLogin ? "Sign up" : "Sign in"}
-          </button>
-        </motion.p>
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              onClick={switchMode}
+              className="font-semibold text-accent-blue hover:text-accent-blue/80 transition-colors"
+            >
+              {isLogin ? "Sign up" : "Sign in"}
+            </button>
+          </motion.p>
+        )}
 
         {/* Dev hint */}
         {import.meta.env.DEV && isLogin && (
