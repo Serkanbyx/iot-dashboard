@@ -5,12 +5,31 @@ export const DEMO_ADMIN_EMAIL = "admin@iot-dashboard.com";
 export const DEMO_ADMIN_PASSWORD = "admin123";
 export const MIN_SEED_ADMIN_PASSWORD_LENGTH = 8;
 
-export function resolveSeedAdminCredentials(): {
-  email: string;
-  password: string;
-  name: string;
-  syncPasswordOnUpsert: boolean;
-} {
+export type SeedAdminConfig =
+  | {
+      mode: "upsert";
+      email: string;
+      password: string;
+      name: string;
+      syncPasswordOnUpsert: boolean;
+    }
+  | { mode: "use-existing" };
+
+function validateProductionSeedPassword(password: string): void {
+  if (password.length < MIN_SEED_ADMIN_PASSWORD_LENGTH) {
+    throw new Error(
+      `SEED_ADMIN_PASSWORD must be at least ${MIN_SEED_ADMIN_PASSWORD_LENGTH} characters in production`
+    );
+  }
+
+  if (password === DEMO_ADMIN_PASSWORD) {
+    throw new Error(
+      "SEED_ADMIN_PASSWORD cannot be the default demo password in production"
+    );
+  }
+}
+
+export function resolveSeedAdminConfig(): SeedAdminConfig {
   const nodeEnv = process.env.NODE_ENV ?? "development";
   const isProduction = nodeEnv === "production";
 
@@ -22,32 +41,37 @@ export function resolveSeedAdminCredentials(): {
     (isProduction ? "" : DEMO_ADMIN_PASSWORD);
   const name = process.env.SEED_ADMIN_NAME?.trim() || "Admin";
 
+  if (isProduction && (!email || !password)) {
+    return { mode: "use-existing" };
+  }
+
   if (isProduction) {
-    if (!email || !password) {
-      throw new Error(
-        "SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD are required when NODE_ENV=production"
-      );
-    }
-
-    if (password.length < MIN_SEED_ADMIN_PASSWORD_LENGTH) {
-      throw new Error(
-        `SEED_ADMIN_PASSWORD must be at least ${MIN_SEED_ADMIN_PASSWORD_LENGTH} characters in production`
-      );
-    }
-
-    if (password === DEMO_ADMIN_PASSWORD) {
-      throw new Error(
-        "SEED_ADMIN_PASSWORD cannot be the default demo password in production"
-      );
-    }
+    validateProductionSeedPassword(password);
   }
 
   return {
+    mode: "upsert",
     email,
     password,
     name,
     syncPasswordOnUpsert: isProduction,
   };
+}
+
+/** @deprecated Use resolveSeedAdminConfig instead */
+export function resolveSeedAdminCredentials(): {
+  email: string;
+  password: string;
+  name: string;
+  syncPasswordOnUpsert: boolean;
+} {
+  const config = resolveSeedAdminConfig();
+  if (config.mode === "use-existing") {
+    throw new Error(
+      "SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD are required when NODE_ENV=production"
+    );
+  }
+  return config;
 }
 
 export async function assertProductionAdminSecurity(

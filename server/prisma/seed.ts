@@ -5,7 +5,8 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveSeedAdminCredentials } from "../src/utils/adminSecurity.js";
+import { resolveSeedAdminConfig } from "../src/utils/adminSecurity.js";
+import type { User } from "../src/generated/prisma/client.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -14,25 +15,46 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-async function main(): Promise<void> {
-  const { email, password, name, syncPasswordOnUpsert } =
-    resolveSeedAdminCredentials();
+async function resolveAdminUser(): Promise<User> {
+  const config = resolveSeedAdminConfig();
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  if (config.mode === "use-existing") {
+    const existing = await prisma.user.findFirst({
+      where: { role: "ADMIN", isActive: true },
+    });
+
+    if (!existing) {
+      throw new Error(
+        "[SEED] No admin user found. Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in production for the initial bootstrap."
+      );
+    }
+
+    console.log(
+      `[SEED] SEED_ADMIN_* not set — reusing existing admin: ${existing.email}`
+    );
+    return existing;
+  }
+
+  const hashedPassword = await bcrypt.hash(config.password, 12);
 
   const admin = await prisma.user.upsert({
-    where: { email },
-    update: syncPasswordOnUpsert
-      ? { name, password: hashedPassword }
+    where: { email: config.email },
+    update: config.syncPasswordOnUpsert
+      ? { name: config.name, password: hashedPassword }
       : {},
     create: {
-      name,
-      email,
+      name: config.name,
+      email: config.email,
       password: hashedPassword,
       role: "ADMIN",
     },
   });
   console.log(`[SEED] Admin user: ${admin.email} (${admin.id})`);
+  return admin;
+}
+
+async function main(): Promise<void> {
+  const admin = await resolveAdminUser();
 
   // 2. Upsert default threshold configs
   const thresholds = [
