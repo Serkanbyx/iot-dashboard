@@ -23,6 +23,7 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch users on mount
     void fetchUsers()
       .catch(() => toast.error("Failed to load users."))
       .finally(() => setLoading(false));
