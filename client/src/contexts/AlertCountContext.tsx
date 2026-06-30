@@ -37,31 +37,36 @@ export function AlertCountProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setUnacknowledgedCount(0);
-      return;
-    }
+    if (!user) return;
 
-    refreshCount();
-  }, [user, refreshCount]);
+    let cancelled = false;
+    void alertService
+      .getAlertStats()
+      .then((stats) => {
+        if (!cancelled) {
+          setUnacknowledgedCount(stats.unacknowledged);
+        }
+      })
+      .catch(() => {
+        // stats are non-critical; ignore
+      });
 
-  const handleNewAlert = useCallback((_alert: Alert) => {
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const handleNewAlert = useCallback(() => {
     setUnacknowledgedCount((prev) => prev + 1);
   }, []);
 
-  const handleAlertAcknowledged = useCallback(
-    (_payload: AlertAcknowledgedPayload) => {
-      setUnacknowledgedCount((prev) => Math.max(0, prev - 1));
-    },
-    []
-  );
+  const handleAlertAcknowledged = useCallback(() => {
+    setUnacknowledgedCount((prev) => Math.max(0, prev - 1));
+  }, []);
 
-  const handleBulkAcknowledged = useCallback(
-    (_payload: AlertBulkAcknowledgedPayload) => {
-      setUnacknowledgedCount(0);
-    },
-    []
-  );
+  const handleBulkAcknowledged = useCallback(() => {
+    setUnacknowledgedCount(0);
+  }, []);
 
   useSocket<Alert>("alert:new", handleNewAlert);
   useSocket<AlertAcknowledgedPayload>(
@@ -74,8 +79,11 @@ export function AlertCountProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ unacknowledgedCount, refreshCount }),
-    [unacknowledgedCount, refreshCount]
+    () => ({
+      unacknowledgedCount: user ? unacknowledgedCount : 0,
+      refreshCount,
+    }),
+    [user, unacknowledgedCount, refreshCount]
   );
 
   return (

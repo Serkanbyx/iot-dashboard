@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
-import { useSocketContext } from "../../contexts/SocketContext";
+import { useConnectionStatus } from "../../hooks/useConnectionStatus";
 import LiveIndicator from "../dashboard/LiveIndicator";
 import { cn } from "../../utils/cn";
 
@@ -38,7 +38,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAdmin } = useAuth();
-  const { isConnected } = useSocketContext();
+  const { indicatorStatus } = useConnectionStatus();
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
@@ -51,7 +51,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     [isAdmin]
   );
 
-  const connectionStatus = isConnected ? "online" : ("offline" as const);
+  const connectionStatus = indicatorStatus;
 
   return (
     <>

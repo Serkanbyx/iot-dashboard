@@ -60,12 +60,16 @@
 [🚀 View Live Demo](https://iot-dashboard-one-rouge.vercel.app/)
 
 ```
-Default admin credentials:
+Default admin credentials (demo only):
 Email:    admin@iot-dashboard.com
 Password: admin123
 ```
 
-> The backend runs on Render free tier and may need ~30 seconds to cold-start on the first request.
+> These credentials are for the public demo only. Production deployments must set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` before running seed.
+
+> The backend runs on Render free tier and may need ~30 seconds to cold-start on the first request. The app automatically pings `/api/health` and shows a **Waking up** status instead of going offline immediately.
+
+> Optional: set the repository variable `BACKEND_HEALTH_URL` (e.g. `https://your-api.onrender.com/api/health`) to enable the scheduled keep-alive workflow and reduce cold starts.
 
 ---
 
@@ -283,12 +287,14 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) and log in with the seeded credentials:
+Open [http://localhost:5173](http://localhost:5173) and log in with the development seed credentials:
 
 ```
 Email:    admin@iot-dashboard.com
 Password: admin123
 ```
+
+> Local development uses these defaults automatically. Do not use them in production.
 
 ---
 
@@ -499,6 +505,7 @@ s5.3_Iot-Dashboard/
 - **Input Sanitization** — express-mongo-sanitize strips `$` and `.` operators
 - **Input Validation** — express-validator rules on every mutation endpoint
 - **Password Hashing** — bcryptjs with salt rounds
+- **Production Admin** — `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` required for production seed; server refuses to start if the default demo password is still in use
 - **JWT Authentication** — Stateless tokens with configurable expiry
 - **Role-based Authorization** — Admin-only routes for settings, devices, and alert management
 - **Device Whitelist** — MQTT consumer only processes data from registered active devices
@@ -523,9 +530,10 @@ Every service uses permanent free tiers — no credit card required, no expirati
 
 1. Connect your GitHub repository
 2. Set root directory to `server`
-3. Build command: `npm install && npx prisma generate && npm run build && npx prisma db push && npm run seed`
+3. Build command: `npm install && npx prisma generate && npm run build && npm run db:migrate:deploy && npm run seed`
 4. Start command: `npm start`
 5. Add all environment variables from `.env.example`
+6. **Required in production:** set `NODE_ENV=production`, `ALLOW_REGISTRATION=false`, and strong `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` values before seed runs
 
 ### Vercel (Frontend)
 
@@ -566,6 +574,10 @@ Every service uses permanent free tiers — no credit card required, no expirati
 | `JWT_SECRET` | JWT signing secret (min 32 chars) | — |
 | `JWT_EXPIRES_IN` | Token expiry duration | `7d` |
 | `CLIENT_URL` | CORS allowed origin | `http://localhost:5173` |
+| `ALLOW_REGISTRATION` | Allow public sign-up | `true` (defaults to `false` in production) |
+| `SEED_ADMIN_EMAIL` | Admin email for `npm run seed` | dev: `admin@iot-dashboard.com` |
+| `SEED_ADMIN_PASSWORD` | Admin password for seed | dev: `admin123`; **required in production** |
+| `SEED_ADMIN_NAME` | Admin display name | `Admin` |
 | `SMTP_HOST` | SMTP server host | `smtp.gmail.com` |
 | `SMTP_PORT` | SMTP server port | `587` |
 | `SMTP_USER` | SMTP email address | — |

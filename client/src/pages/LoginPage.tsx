@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
+import { useBackendWake } from "../contexts/BackendWakeContext";
 import * as authService from "../api/authService";
 import { cn } from "../utils/cn";
 
@@ -19,6 +20,7 @@ type AuthMode = "login" | "register";
 
 export default function LoginPage() {
   const { login, register } = useAuth();
+  const { status: backendStatus, isWaking, wakeBackend } = useBackendWake();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<AuthMode>("login");
@@ -46,11 +48,8 @@ export default function LoginPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!registrationAllowed && mode === "register") {
-      setMode("login");
-    }
-  }, [registrationAllowed, mode]);
+  const activeMode: AuthMode =
+    !registrationAllowed && mode === "register" ? "login" : mode;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -58,7 +57,17 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      if (mode === "login") {
+      if (backendStatus !== "awake") {
+        const ready = await wakeBackend();
+        if (!ready) {
+          toast.error(
+            "Server is still waking up. Please wait a moment and try again."
+          );
+          return;
+        }
+      }
+
+      if (activeMode === "login") {
         await login(email, password);
         toast.success("Welcome back!");
       } else {
@@ -73,11 +82,11 @@ export default function LoginPage() {
       navigate("/", { replace: true });
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
-      if (mode === "register" && status === 403) {
+      if (activeMode === "register" && status === 403) {
         toast.error("Registration is currently disabled.");
       } else {
         toast.error(
-          mode === "login"
+          activeMode === "login"
             ? "Invalid email or password."
             : "Registration failed. Email may already be in use."
         );
@@ -95,7 +104,7 @@ export default function LoginPage() {
     setShowPassword(false);
   }
 
-  const isLogin = mode === "login";
+  const isLogin = activeMode === "login";
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg-primary px-4">
@@ -143,6 +152,37 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
+
+        {(isWaking || backendStatus === "unavailable") && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "mb-4 rounded-xl border px-4 py-3 text-sm",
+              isWaking
+                ? "border-warning/30 bg-warning/10 text-warning"
+                : "border-danger/30 bg-danger/10 text-danger"
+            )}
+          >
+            {isWaking ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                Waking up server — this can take up to 30 seconds on free tier.
+              </span>
+            ) : (
+              <span>
+                Could not reach the server.{" "}
+                <button
+                  type="button"
+                  onClick={() => void wakeBackend()}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  Retry
+                </button>
+              </span>
+            )}
+          </motion.div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

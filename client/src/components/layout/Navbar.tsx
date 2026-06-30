@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, Bell, Sun, Moon, LogOut } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useSocketContext } from "../../contexts/SocketContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAlertCount } from "../../contexts/AlertCountContext";
+import { useConnectionStatus } from "../../hooks/useConnectionStatus";
+import type { ConnectionState } from "../../hooks/useConnectionStatus";
 import LiveIndicator from "../dashboard/LiveIndicator";
 import { cn } from "../../utils/cn";
 
@@ -14,7 +15,7 @@ interface NavbarProps {
 
 export default function Navbar({ onMenuToggle }: NavbarProps) {
   const { user, logout } = useAuth();
-  const { isConnected } = useSocketContext();
+  const { indicatorStatus, connectionState, label } = useConnectionStatus();
   const { isDark, setTheme, theme } = useTheme();
   const navigate = useNavigate();
   const { unacknowledgedCount } = useAlertCount();
@@ -67,7 +68,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
     logout();
   }, [logout]);
 
-  const connectionStatus = isConnected ? "online" : "offline";
+  const connectionStatus = indicatorStatus;
 
   return (
     <header
@@ -102,7 +103,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 
       {/* Center: connection status pill */}
       <div className="hidden sm:flex items-center">
-        <ConnectionPill isConnected={isConnected} />
+        <ConnectionPill connectionState={connectionState} label={label} />
       </div>
 
       {/* Right: bell + theme + user */}
@@ -223,56 +224,43 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 
 /* ── Sub-components ─────────────────────────────────────────────── */
 
-type ConnectionState = "connected" | "reconnecting" | "offline";
-
-function useConnectionState(isConnected: boolean): ConnectionState {
-  const [timedOut, setTimedOut] = useState(false);
-  const [prevConnected, setPrevConnected] = useState(isConnected);
-
-  if (isConnected !== prevConnected) {
-    setPrevConnected(isConnected);
-    if (isConnected) setTimedOut(false);
-  }
-
-  useEffect(() => {
-    if (isConnected) return;
-    const timer = setTimeout(() => setTimedOut(true), 5000);
-    return () => clearTimeout(timer);
-  }, [isConnected]);
-
-  if (isConnected) return "connected";
-  return timedOut ? "offline" : "reconnecting";
-}
-
 const CONNECTION_CONFIG: Record<
   ConnectionState,
-  { dot: string; text: string; label: string; glow: string; pulse: boolean }
+  { dot: string; text: string; glow: string; pulse: boolean }
 > = {
   connected: {
     dot: "bg-accent-emerald",
     text: "text-accent-emerald",
-    label: "Live",
     glow: "glow-emerald",
     pulse: false,
+  },
+  waking: {
+    dot: "bg-warning",
+    text: "text-warning",
+    glow: "",
+    pulse: true,
   },
   reconnecting: {
     dot: "bg-warning",
     text: "text-warning",
-    label: "Reconnecting",
     glow: "",
     pulse: true,
   },
   offline: {
     dot: "bg-danger",
     text: "text-danger",
-    label: "Offline",
     glow: "",
     pulse: true,
   },
 };
 
-function ConnectionPill({ isConnected }: { isConnected: boolean }) {
-  const connectionState = useConnectionState(isConnected);
+function ConnectionPill({
+  connectionState,
+  label,
+}: {
+  connectionState: ConnectionState;
+  label: string;
+}) {
   const config = CONNECTION_CONFIG[connectionState];
 
   return (
@@ -291,7 +279,7 @@ function ConnectionPill({ isConnected }: { isConnected: boolean }) {
         )}
       />
       <span className={cn("transition-colors duration-200", config.text)}>
-        {config.label}
+        {label}
       </span>
     </div>
   );

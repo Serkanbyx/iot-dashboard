@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { BackendWakeProvider } from "./contexts/BackendWakeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { AlertCountProvider } from "./contexts/AlertCountContext";
@@ -13,37 +14,39 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <SocketProvider>
-            <AlertCountProvider>
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: "var(--color-bg-card)",
-                    color: "var(--color-text-primary)",
-                    border: "1px solid var(--color-glass-border)",
-                    backdropFilter: "blur(12px)",
-                  },
-                  success: {
-                    iconTheme: {
-                      primary: "var(--color-success)",
-                      secondary: "var(--color-bg-card)",
+        <BackendWakeProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <AlertCountProvider>
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: "var(--color-bg-card)",
+                      color: "var(--color-text-primary)",
+                      border: "1px solid var(--color-glass-border)",
+                      backdropFilter: "blur(12px)",
                     },
-                  },
-                  error: {
-                    iconTheme: {
-                      primary: "var(--color-danger)",
-                      secondary: "var(--color-bg-card)",
+                    success: {
+                      iconTheme: {
+                        primary: "var(--color-success)",
+                        secondary: "var(--color-bg-card)",
+                      },
                     },
-                  },
-                }}
-              />
-              <App />
-            </AlertCountProvider>
-          </SocketProvider>
-        </AuthProvider>
+                    error: {
+                      iconTheme: {
+                        primary: "var(--color-danger)",
+                        secondary: "var(--color-bg-card)",
+                      },
+                    },
+                  }}
+                />
+                <App />
+              </AlertCountProvider>
+            </SocketProvider>
+          </AuthProvider>
+        </BackendWakeProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>

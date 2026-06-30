@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
-import { useSocketContext } from "../contexts/SocketContext";
 import { useSocket } from "../hooks/useSocket";
+import { useConnectionStatus } from "../hooks/useConnectionStatus";
 import * as sensorService from "../api/sensorService";
 import * as thresholdService from "../api/thresholdService";
 import type { SensorReading, ThresholdConfig, Alert } from "../types";
@@ -30,7 +30,7 @@ function readingKey(sensorId: string, type: string) {
 }
 
 export default function DashboardPage() {
-  const { isConnected } = useSocketContext();
+  const { indicatorStatus } = useConnectionStatus();
   const { unacknowledgedCount } = useAlertCount();
 
   const [readings, setReadings] = useState<Map<string, SensorReading>>(
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <LiveIndicator status={isConnected ? "online" : "offline"} />
+            <LiveIndicator status={indicatorStatus} />
           </div>
           <p className="text-sm text-text-secondary mt-0.5">
             Real-time sensor monitoring

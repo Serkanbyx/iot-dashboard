@@ -15,6 +15,5 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  "subscribe:floor": (floor: string) => void;
-  "unsubscribe:floor": (floor: string) => void;
+  // No client → server events; all realtime data uses the shared "dashboard" room.
 }

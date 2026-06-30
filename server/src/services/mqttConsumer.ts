@@ -8,6 +8,7 @@ import type { SensorReading, SensorTypeValue } from "../types/sensor.js";
 const VALID_SENSOR_TYPES: SensorTypeValue[] = ["temperature", "humidity", "pressure"];
 
 let deviceCache: Set<string> = new Set();
+let mqttClient: mqtt.MqttClient | null = null;
 
 export async function refreshDeviceCache(): Promise<void> {
   const devices = await prisma.device.findMany({
@@ -59,6 +60,7 @@ async function insertReading(reading: SensorReading): Promise<void> {
 export function startMqttConsumer(io: Server): void {
   const { brokerUrl, options, topicRoot } = mqttConfig;
   const client = mqtt.connect(brokerUrl, options);
+  mqttClient = client;
 
   const wildcardTopic = `${topicRoot}/+/+/+`;
 
@@ -113,5 +115,37 @@ export function startMqttConsumer(io: Server): void {
 
   client.on("offline", () => {
     console.warn("[MQTT] Client offline");
+  });
+}
+
+export function stopMqttConsumer(): Promise<void> {
+  return new Promise((resolve) => {
+    if (!mqttClient) {
+      resolve();
+      return;
+    }
+
+    const client = mqttClient;
+    mqttClient = null;
+    client.removeAllListeners();
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      console.log("[MQTT] Client disconnected");
+      resolve();
+    };
+
+    const forceTimer = setTimeout(() => {
+      client.end(true);
+      finish();
+    }, 5000);
+    forceTimer.unref();
+
+    client.end(false, {}, () => {
+      clearTimeout(forceTimer);
+      finish();
+    });
   });
 }

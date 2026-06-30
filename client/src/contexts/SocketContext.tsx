@@ -8,6 +8,7 @@ import {
 } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
+import { useBackendWake } from "./BackendWakeContext";
 
 interface SocketContextValue {
   socket: Socket | null;
@@ -23,12 +24,13 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || "";
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
+  const { status: backendStatus } = useBackendWake();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setSocket(null); // eslint-disable-line react-hooks/set-state-in-effect -- clear on logout
+    if (!token || backendStatus !== "awake") {
+      setSocket(null); // eslint-disable-line react-hooks/set-state-in-effect -- clear when logged out or backend asleep
       setIsConnected(false);
       return;
     }
@@ -46,7 +48,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     return () => {
       newSocket.disconnect();
     };
-  }, [token]);
+  }, [token, backendStatus]);
 
   const value = useMemo(
     () => ({ socket, isConnected }),

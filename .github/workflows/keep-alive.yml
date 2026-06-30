@@ -1,0 +1,16 @@
+name: Backend Keep-Alive
+
+on:
+  schedule:
+    # Render free tier sleeps after ~15 min idle; ping every 14 minutes.
+    - cron: "*/14 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Health Endpoint
+    runs-on: ubuntu-latest
+    if: ${{ vars.BACKEND_HEALTH_URL != '' }}
+    steps:
+      - name: Wake backend
+        run: curl --fail --retry 3 --retry-delay 10 --max-time 60 "${{ vars.BACKEND_HEALTH_URL }}"

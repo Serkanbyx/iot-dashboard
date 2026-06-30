@@ -8,8 +8,9 @@ import { fileURLToPath } from "node:url";
 
 import config from "./config/env.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
-import { initSocket } from "./services/socketService.js";
-import { startMqttConsumer } from "./services/mqttConsumer.js";
+import { assertProductionAdminSecurity } from "./utils/adminSecurity.js";
+import { initSocket, closeSocket } from "./services/socketService.js";
+import { startMqttConsumer, stopMqttConsumer } from "./services/mqttConsumer.js";
 import { sanitize } from "./middlewares/sanitize.js";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -118,6 +119,7 @@ app.use(errorHandler);
 async function bootstrap(): Promise<void> {
   try {
     await connectDatabase();
+    await assertProductionAdminSecurity(config.NODE_ENV);
     startMqttConsumer(io);
 
     httpServer.listen(config.PORT, () => {
@@ -132,11 +134,41 @@ async function bootstrap(): Promise<void> {
 }
 
 // --- Graceful Shutdown ---
+let isShuttingDown = false;
+
 async function shutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
   console.log(`\n[SERVER] ${signal} received — shutting down gracefully…`);
-  httpServer.close();
-  await disconnectDatabase();
-  process.exit(0);
+
+  const forceExitTimer = setTimeout(() => {
+    console.error("[SERVER] Graceful shutdown timed out — forcing exit");
+    process.exit(1);
+  }, 10_000);
+  forceExitTimer.unref();
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      httpServer.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    console.log("[SERVER] HTTP server closed");
+
+    await stopMqttConsumer();
+    await closeSocket();
+    await disconnectDatabase();
+
+    clearTimeout(forceExitTimer);
+    console.log("[SERVER] Shutdown complete");
+    process.exit(0);
+  } catch (error) {
+    console.error("[SERVER] Shutdown error:", error);
+    clearTimeout(forceExitTimer);
+    process.exit(1);
+  }
 }
 
 process.on("SIGINT", () => shutdown("SIGINT"));

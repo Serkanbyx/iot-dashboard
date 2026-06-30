@@ -241,23 +241,20 @@ export default function AlertsPage() {
     [fetchStats]
   );
 
-  const handleBulkAcknowledged = useCallback(
-    (_payload: AlertBulkAcknowledgedPayload) => {
-      setAlerts((prev) =>
-        prev.map((a) =>
-          a.isAcknowledged
-            ? a
-            : {
-                ...a,
-                isAcknowledged: true,
-                acknowledgedAt: a.acknowledgedAt ?? new Date().toISOString(),
-              }
-        )
-      );
-      fetchStats();
-    },
-    [fetchStats]
-  );
+  const handleBulkAcknowledged = useCallback(() => {
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.isAcknowledged
+          ? a
+          : {
+              ...a,
+              isAcknowledged: true,
+              acknowledgedAt: a.acknowledgedAt ?? new Date().toISOString(),
+            }
+      )
+    );
+    fetchStats();
+  }, [fetchStats]);
 
   useSocket<Alert>("alert:new", handleNewAlert);
   useSocket<AlertAcknowledgedPayload>(

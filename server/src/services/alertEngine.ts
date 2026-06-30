@@ -12,6 +12,53 @@ interface ThresholdEntry {
   isActive: boolean;
 }
 
+export interface ThresholdEvaluation {
+  severity: SeverityLevel;
+  direction: DirectionLevel;
+  thresholdValue: number;
+}
+
+export function evaluateReadingAgainstThreshold(
+  value: number,
+  threshold: ThresholdEntry
+): ThresholdEvaluation | null {
+  if (!threshold.isActive) return null;
+
+  if (value > threshold.criticalMax) {
+    return {
+      severity: "CRITICAL",
+      direction: "ABOVE",
+      thresholdValue: threshold.criticalMax,
+    };
+  }
+
+  if (value < threshold.criticalMin) {
+    return {
+      severity: "CRITICAL",
+      direction: "BELOW",
+      thresholdValue: threshold.criticalMin,
+    };
+  }
+
+  if (value > threshold.maxValue) {
+    return {
+      severity: "WARNING",
+      direction: "ABOVE",
+      thresholdValue: threshold.maxValue,
+    };
+  }
+
+  if (value < threshold.minValue) {
+    return {
+      severity: "WARNING",
+      direction: "BELOW",
+      thresholdValue: threshold.minValue,
+    };
+  }
+
+  return null;
+}
+
 type SeverityLevel = "WARNING" | "CRITICAL";
 type DirectionLevel = "ABOVE" | "BELOW";
 
@@ -58,29 +105,10 @@ export async function processReading(reading: SensorReading, io: Server): Promis
 
   if (!threshold || !threshold.isActive) return;
 
-  let severity: SeverityLevel | null = null;
-  let direction: DirectionLevel | null = null;
-  let thresholdValue = 0;
+  const evaluation = evaluateReadingAgainstThreshold(reading.value, threshold);
+  if (!evaluation) return;
 
-  if (reading.value > threshold.criticalMax) {
-    severity = "CRITICAL";
-    direction = "ABOVE";
-    thresholdValue = threshold.criticalMax;
-  } else if (reading.value < threshold.criticalMin) {
-    severity = "CRITICAL";
-    direction = "BELOW";
-    thresholdValue = threshold.criticalMin;
-  } else if (reading.value > threshold.maxValue) {
-    severity = "WARNING";
-    direction = "ABOVE";
-    thresholdValue = threshold.maxValue;
-  } else if (reading.value < threshold.minValue) {
-    severity = "WARNING";
-    direction = "BELOW";
-    thresholdValue = threshold.minValue;
-  }
-
-  if (!severity || !direction) return;
+  const { severity, direction, thresholdValue } = evaluation;
 
   // Dedup: skip if an unacknowledged alert exists for same sensor+type within last 60s
   const recentAlert = await prisma.alert.findFirst({

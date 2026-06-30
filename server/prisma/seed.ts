@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveSeedAdminCredentials } from "../src/utils/adminSecurity.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -14,15 +15,19 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main(): Promise<void> {
-  // 1. Upsert admin user
-  const hashedPassword = await bcrypt.hash("admin123", 12);
+  const { email, password, name, syncPasswordOnUpsert } =
+    resolveSeedAdminCredentials();
+
+  const hashedPassword = await bcrypt.hash(password, 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@iot-dashboard.com" },
-    update: {},
+    where: { email },
+    update: syncPasswordOnUpsert
+      ? { name, password: hashedPassword }
+      : {},
     create: {
-      name: "Admin",
-      email: "admin@iot-dashboard.com",
+      name,
+      email,
       password: hashedPassword,
       role: "ADMIN",
     },

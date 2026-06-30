@@ -87,14 +87,6 @@ export function initSocket(
       `[SOCKET] Client connected: ${socket.id} (${socket.data.user.email})`
     );
 
-    socket.on("subscribe:floor", (floor: string) => {
-      socket.join(`floor:${floor}`);
-    });
-
-    socket.on("unsubscribe:floor", (floor: string) => {
-      socket.leave(`floor:${floor}`);
-    });
-
     socket.on("disconnect", () => {
       console.log(`[SOCKET] Client disconnected: ${socket.id}`);
     });
@@ -108,4 +100,25 @@ export function getIO(): TypedServer {
     throw new Error("Socket.io not initialized — call initSocket() first");
   }
   return io;
+}
+
+export function closeSocket(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (!io) {
+      resolve();
+      return;
+    }
+
+    const server = io;
+    io = null;
+
+    server.close((err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      console.log("[SOCKET] Server closed");
+      resolve();
+    });
+  });
 }
