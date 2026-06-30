@@ -530,7 +530,7 @@ Every service uses permanent free tiers — no credit card required, no expirati
 
 1. Connect your GitHub repository
 2. Set root directory to `server`
-3. Build command: `npm install && npx prisma generate && npm run build && npm run db:migrate:deploy && npm run seed`
+3. Build command: `npm install && npx prisma generate && npm run db:deploy && npm run build && npm run seed`
 4. Start command: `npm start`
 5. Add all environment variables from `.env.example`
 6. **Required in production:** set `NODE_ENV=production`, `ALLOW_REGISTRATION=false`, and strong `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` values before seed runs
@@ -546,7 +546,7 @@ Every service uses permanent free tiers — no credit card required, no expirati
 
 1. Create a free project at [neon.tech](https://neon.tech)
 2. Copy the pooled connection string to `DATABASE_URL`
-3. Run `npx prisma db push` from the server directory
+3. Run `npm run db:deploy` from the server directory (or `npx prisma migrate dev` for local development)
 
 ### HiveMQ Cloud (MQTT)
 

@@ -17,6 +17,7 @@
     "simulate": "tsx src/simulator/sensorSimulator.ts",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
+    "db:deploy": "tsx scripts/deployDatabase.ts",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "test": "vitest run",
