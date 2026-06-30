@@ -4,6 +4,7 @@ import { Menu, Bell, Sun, Moon, LogOut } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocketContext } from "../../contexts/SocketContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAlertCount } from "../../contexts/AlertCountContext";
 import LiveIndicator from "../dashboard/LiveIndicator";
 import { cn } from "../../utils/cn";
 
@@ -16,8 +17,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
   const { isConnected } = useSocketContext();
   const { isDark, setTheme, theme } = useTheme();
   const navigate = useNavigate();
-
-  const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
+  const { unacknowledgedCount } = useAlertCount();
   const [shaking, setShaking] = useState(false);
   const [badgeBouncing, setBadgeBouncing] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,10 +68,6 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
   }, [logout]);
 
   const connectionStatus = isConnected ? "online" : "offline";
-
-  /* Expose setter for alert badge — parent/socket can update via ref or context */
-  // Will be wired to real socket events in a later step
-  void setUnacknowledgedCount;
 
   return (
     <header

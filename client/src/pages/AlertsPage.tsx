@@ -8,6 +8,7 @@ import * as alertService from "../api/alertService";
 import type {
   Alert,
   AlertAcknowledgedPayload,
+  AlertBulkAcknowledgedPayload,
   AlertStats as AlertStatsData,
   AlertFilters,
 } from "../types";
@@ -240,10 +241,32 @@ export default function AlertsPage() {
     [fetchStats]
   );
 
+  const handleBulkAcknowledged = useCallback(
+    (_payload: AlertBulkAcknowledgedPayload) => {
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.isAcknowledged
+            ? a
+            : {
+                ...a,
+                isAcknowledged: true,
+                acknowledgedAt: a.acknowledgedAt ?? new Date().toISOString(),
+              }
+        )
+      );
+      fetchStats();
+    },
+    [fetchStats]
+  );
+
   useSocket<Alert>("alert:new", handleNewAlert);
   useSocket<AlertAcknowledgedPayload>(
     "alert:acknowledged",
     handleAlertAcknowledged
+  );
+  useSocket<AlertBulkAcknowledgedPayload>(
+    "alert:bulk-acknowledged",
+    handleBulkAcknowledged
   );
 
   const hasUnacknowledged = (stats?.unacknowledged ?? 0) > 0;

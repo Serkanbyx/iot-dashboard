@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/guards/ProtectedRoute";
+import AdminRoute from "./components/guards/AdminRoute";
 import GuestOnlyRoute from "./components/guards/GuestOnlyRoute";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -23,8 +24,10 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/historical" element={<HistoricalPage />} />
             <Route path="/alerts" element={<AlertsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/devices" element={<DevicesPage />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/devices" element={<DevicesPage />} />
+            </Route>
           </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />

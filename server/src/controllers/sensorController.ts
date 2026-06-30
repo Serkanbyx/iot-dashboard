@@ -47,7 +47,6 @@ export const getLatestReadings = async (
       SELECT DISTINCT ON (sensor_id, sensor_type)
         time, sensor_id, floor, sensor_type, value, unit
       FROM sensor_readings
-      WHERE time > NOW() - INTERVAL '5 minutes'
       ORDER BY sensor_id, sensor_type, time DESC
     `);
 
@@ -153,9 +152,8 @@ export const getSensorList = async (
 ): Promise<void> => {
   try {
     const rows = await prisma.$queryRawUnsafe<SensorListRow[]>(`
-      SELECT DISTINCT sensor_id, floor, MAX(time) AS last_seen
+      SELECT sensor_id, floor, MAX(time) AS last_seen
       FROM sensor_readings
-      WHERE time > NOW() - INTERVAL '1 hour'
       GROUP BY sensor_id, floor
       ORDER BY floor, sensor_id
     `);

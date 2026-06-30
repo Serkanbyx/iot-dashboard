@@ -40,8 +40,8 @@ async function loadThresholds(): Promise<void> {
   console.log(`[ALERT] Threshold cache loaded (${thresholdCache.size} entries)`);
 }
 
-export function refreshCache(): void {
-  lastCacheRefresh = 0;
+export async function reloadThresholdCache(): Promise<void> {
+  await loadThresholds();
 }
 
 function mapSensorTypeToEnum(type: string): "TEMPERATURE" | "HUMIDITY" | "PRESSURE" {

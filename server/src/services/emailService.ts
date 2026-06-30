@@ -35,16 +35,22 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
-function isOnCooldown(sensorId: string, sensorType: string): boolean {
-  const key = `${sensorId}:${sensorType}`;
-  const lastSent = cooldownMap.get(key);
+function getCooldownKey(sensorId: string, sensorType: string): string {
+  return `${sensorId}:${sensorType}`;
+}
 
-  if (lastSent && Date.now() - lastSent < EMAIL_COOLDOWN_MS) {
-    return true;
+function isOnCooldown(sensorId: string, sensorType: string): boolean {
+  const lastSent = cooldownMap.get(getCooldownKey(sensorId, sensorType));
+
+  if (!lastSent) {
+    return false;
   }
 
-  cooldownMap.set(key, Date.now());
-  return false;
+  return Date.now() - lastSent < EMAIL_COOLDOWN_MS;
+}
+
+function markEmailSent(sensorId: string, sensorType: string): void {
+  cooldownMap.set(getCooldownKey(sensorId, sensorType), Date.now());
 }
 
 export async function sendAlertEmail(alert: AlertEmailPayload): Promise<boolean> {
@@ -85,6 +91,7 @@ export async function sendAlertEmail(alert: AlertEmailPayload): Promise<boolean>
       subject: `[CRITICAL] IoT Alert: ${escapeHtml(alert.sensorType)} on ${escapeHtml(alert.sensorId)}`,
       html,
     });
+    markEmailSent(alert.sensorId, alert.sensorType);
     console.log(`[EMAIL] Alert sent for ${alert.sensorId}:${alert.sensorType}`);
     return true;
   } catch (error) {

@@ -3,9 +3,9 @@ import toast from "react-hot-toast";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useSocket } from "../hooks/useSocket";
 import * as sensorService from "../api/sensorService";
-import * as alertService from "../api/alertService";
 import * as thresholdService from "../api/thresholdService";
 import type { SensorReading, ThresholdConfig, Alert } from "../types";
+import { useAlertCount } from "../contexts/AlertCountContext";
 import LiveIndicator from "../components/dashboard/LiveIndicator";
 import FloorTabs from "../components/dashboard/FloorTabs";
 import AlertSummaryBar from "../components/dashboard/AlertSummaryBar";
@@ -31,6 +31,7 @@ function readingKey(sensorId: string, type: string) {
 
 export default function DashboardPage() {
   const { isConnected } = useSocketContext();
+  const { unacknowledgedCount } = useAlertCount();
 
   const [readings, setReadings] = useState<Map<string, SensorReading>>(
     new Map()
@@ -42,16 +43,14 @@ export default function DashboardPage() {
   const [selectedFloor, setSelectedFloor] = useState("all");
   const [view, setView] = useState<DashboardView>("grid");
   const [loading, setLoading] = useState(true);
-  const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
 
   // Initial data fetch
   useEffect(() => {
     async function fetchInitialData() {
       try {
-        const [latestRes, thresholdRes, statsRes] = await Promise.all([
+        const [latestRes, thresholdRes] = await Promise.all([
           sensorService.getLatestReadings(),
           thresholdService.getAllThresholds(),
-          alertService.getAlertStats(),
         ]);
 
         const readingsMap = new Map<string, SensorReading>();
@@ -60,7 +59,6 @@ export default function DashboardPage() {
         }
         setReadings(readingsMap);
         setThresholds(thresholdRes.thresholds);
-        setUnacknowledgedCount(statsRes.unacknowledged);
       } catch {
         toast.error("Failed to load dashboard data.");
       } finally {
@@ -94,7 +92,6 @@ export default function DashboardPage() {
 
   // Socket: alert:new
   const handleNewAlert = useCallback((alert: Alert) => {
-    setUnacknowledgedCount((prev) => prev + 1);
     toast.custom(
       (t) => <AlertToast alert={alert} toastId={t.id} visible={t.visible} />,
       { duration: 6000 }

@@ -15,6 +15,7 @@ export type {
 export type {
   Alert,
   AlertAcknowledgedPayload,
+  AlertBulkAcknowledgedPayload,
   AlertStats,
   ThresholdConfig,
   Pagination,

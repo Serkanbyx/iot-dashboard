@@ -15,8 +15,8 @@ const NAV_ITEMS: MobileNavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Historical", icon: TrendingUp, path: "/historical" },
   { label: "Alerts", icon: Bell, path: "/alerts" },
-  { label: "Devices", icon: Cpu, path: "/devices" },
-  { label: "Settings", icon: Sliders, path: "/settings" },
+  { label: "Devices", icon: Cpu, path: "/devices", adminOnly: true },
+  { label: "Settings", icon: Sliders, path: "/settings", adminOnly: true },
 ];
 
 export default function MobileNav() {

@@ -63,3 +63,9 @@ export interface AlertAcknowledgedPayload {
   alertId: string;
   acknowledgedBy: string;
 }
+
+/** Payload emitted by the server on `alert:bulk-acknowledged` socket event. */
+export interface AlertBulkAcknowledgedPayload {
+  acknowledgedBy: string;
+  count: number;
+}

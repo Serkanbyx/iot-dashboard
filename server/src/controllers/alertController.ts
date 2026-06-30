@@ -149,6 +149,13 @@ export const acknowledgeAll = async (
       },
     });
 
+    if (result.count > 0) {
+      getIO().to("dashboard").emit("alert:bulk-acknowledged", {
+        acknowledgedBy: req.user!.name,
+        count: result.count,
+      });
+    }
+
     res.json({ acknowledged: result.count });
   } catch (error) {
     next(error);

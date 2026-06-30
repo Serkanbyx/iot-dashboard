@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SocketProvider } from "./contexts/SocketContext";
+import { AlertCountProvider } from "./contexts/AlertCountContext";
 import App from "./App";
 import "./index.css";
 
@@ -14,31 +15,33 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <AuthProvider>
           <SocketProvider>
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: "var(--color-bg-card)",
-                  color: "var(--color-text-primary)",
-                  border: "1px solid var(--color-glass-border)",
-                  backdropFilter: "blur(12px)",
-                },
-                success: {
-                  iconTheme: {
-                    primary: "var(--color-success)",
-                    secondary: "var(--color-bg-card)",
+            <AlertCountProvider>
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: "var(--color-bg-card)",
+                    color: "var(--color-text-primary)",
+                    border: "1px solid var(--color-glass-border)",
+                    backdropFilter: "blur(12px)",
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: "var(--color-danger)",
-                    secondary: "var(--color-bg-card)",
+                  success: {
+                    iconTheme: {
+                      primary: "var(--color-success)",
+                      secondary: "var(--color-bg-card)",
+                    },
                   },
-                },
-              }}
-            />
-            <App />
+                  error: {
+                    iconTheme: {
+                      primary: "var(--color-danger)",
+                      secondary: "var(--color-bg-card)",
+                    },
+                  },
+                }}
+              />
+              <App />
+            </AlertCountProvider>
           </SocketProvider>
         </AuthProvider>
       </ThemeProvider>

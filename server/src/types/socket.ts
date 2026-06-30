@@ -8,6 +8,10 @@ export interface ServerToClientEvents {
     alertId: string;
     acknowledgedBy: string;
   }) => void;
+  "alert:bulk-acknowledged": (data: {
+    acknowledgedBy: string;
+    count: number;
+  }) => void;
 }
 
 export interface ClientToServerEvents {
