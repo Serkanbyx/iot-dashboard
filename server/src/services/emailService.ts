@@ -1,6 +1,12 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import config from "../config/env.js";
+import {
+  EMAIL_MAX_RETRIES,
+  getEmailRetryDelayMs,
+  isOnEmailCooldown,
+  markEmailCooldown,
+} from "../utils/emailCooldown.js";
 import { escapeHtml } from "../utils/escapeHtml.js";
 
 interface AlertEmailPayload {
@@ -15,7 +21,6 @@ interface AlertEmailPayload {
   message: string;
 }
 
-const EMAIL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per sensor
 const cooldownMap = new Map<string, number>();
 
 let transporter: Transporter | null = null;
@@ -35,27 +40,40 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
-function getCooldownKey(sensorId: string, sensorType: string): string {
-  return `${sensorId}:${sensorType}`;
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isOnCooldown(sensorId: string, sensorType: string): boolean {
-  const lastSent = cooldownMap.get(getCooldownKey(sensorId, sensorType));
+async function sendMailWithRetry(
+  mailOptions: nodemailer.SendMailOptions
+): Promise<void> {
+  let lastError: unknown;
 
-  if (!lastSent) {
-    return false;
+  for (let attempt = 1; attempt <= EMAIL_MAX_RETRIES; attempt++) {
+    try {
+      await getTransporter().sendMail(mailOptions);
+      return;
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        `[EMAIL] Attempt ${attempt}/${EMAIL_MAX_RETRIES} failed:`,
+        (error as Error).message
+      );
+
+      if (attempt < EMAIL_MAX_RETRIES) {
+        await delay(getEmailRetryDelayMs(attempt));
+      }
+    }
   }
 
-  return Date.now() - lastSent < EMAIL_COOLDOWN_MS;
-}
-
-function markEmailSent(sensorId: string, sensorType: string): void {
-  cooldownMap.set(getCooldownKey(sensorId, sensorType), Date.now());
+  throw lastError;
 }
 
 export async function sendAlertEmail(alert: AlertEmailPayload): Promise<boolean> {
-  if (isOnCooldown(alert.sensorId, alert.sensorType)) {
-    console.log(`[EMAIL] Cooldown active for ${alert.sensorId}:${alert.sensorType}, skipping`);
+  if (isOnEmailCooldown(alert.sensorId, alert.sensorType, cooldownMap)) {
+    console.log(
+      `[EMAIL] Cooldown active for ${alert.sensorId}:${alert.sensorType}, skipping`
+    );
     return false;
   }
 
@@ -85,13 +103,14 @@ export async function sendAlertEmail(alert: AlertEmailPayload): Promise<boolean>
   `;
 
   try {
-    await getTransporter().sendMail({
+    await sendMailWithRetry({
       from: config.ALERT_EMAIL_FROM,
       to: config.ALERT_EMAIL_TO,
       subject: `[CRITICAL] IoT Alert: ${escapeHtml(alert.sensorType)} on ${escapeHtml(alert.sensorId)}`,
       html,
     });
-    markEmailSent(alert.sensorId, alert.sensorType);
+
+    markEmailCooldown(alert.sensorId, alert.sensorType, cooldownMap);
     console.log(`[EMAIL] Alert sent for ${alert.sensorId}:${alert.sensorType}`);
     return true;
   } catch (error) {

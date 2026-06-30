@@ -3,6 +3,10 @@ import type { Server } from "socket.io";
 import mqttConfig from "../config/mqtt.js";
 import prisma from "../config/database.js";
 import { processReading } from "./alertEngine.js";
+import {
+  buildDeviceWhitelist,
+  isDeviceWhitelisted,
+} from "../utils/deviceWhitelist.js";
 import type { SensorReading, SensorTypeValue } from "../types/sensor.js";
 
 const VALID_SENSOR_TYPES: SensorTypeValue[] = ["temperature", "humidity", "pressure"];
@@ -16,11 +20,11 @@ export async function refreshDeviceCache(): Promise<void> {
     select: { sensorId: true },
   });
 
-  deviceCache = new Set(devices.map((d) => d.sensorId));
+  deviceCache = buildDeviceWhitelist(devices.map((d) => d.sensorId));
 }
 
 function isDeviceAllowed(sensorId: string): boolean {
-  return deviceCache.has(sensorId);
+  return isDeviceWhitelisted(sensorId, deviceCache);
 }
 
 function isValidSensorReading(data: unknown): data is SensorReading {

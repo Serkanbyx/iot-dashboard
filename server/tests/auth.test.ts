@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
-import { protect } from "../src/middlewares/auth.js";
+import { protect, adminOnly } from "../src/middlewares/auth.js";
 import { generateToken } from "../src/utils/generateToken.js";
 import config from "../src/config/env.js";
 
@@ -109,6 +109,44 @@ describe("auth", () => {
         error: "Not authorized — user not found or inactive",
       });
       expect(next).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("adminOnly middleware", () => {
+    it("returns 403 for non-admin users", () => {
+      const req = {
+        user: {
+          id: "user-1",
+          name: "Viewer",
+          email: "viewer@example.com",
+          role: "VIEWER" as const,
+        },
+      } as Request;
+      const res = createMockResponse();
+      const next = vi.fn() as NextFunction;
+
+      adminOnly(req, res, next);
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body).toEqual({ error: "Forbidden — admin access required" });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("allows admin users to continue", () => {
+      const req = {
+        user: {
+          id: "admin-1",
+          name: "Admin",
+          email: "admin@example.com",
+          role: "ADMIN" as const,
+        },
+      } as Request;
+      const res = createMockResponse();
+      const next = vi.fn() as NextFunction;
+
+      adminOnly(req, res, next);
+
+      expect(next).toHaveBeenCalledOnce();
     });
   });
 });

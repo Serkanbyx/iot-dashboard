@@ -180,7 +180,6 @@ export const getFloorOverview = async (
       SELECT DISTINCT ON (sensor_id, sensor_type)
         time, sensor_id, floor, sensor_type, value, unit
       FROM sensor_readings
-      WHERE time > NOW() - INTERVAL '5 minutes'
       ORDER BY sensor_id, sensor_type, time DESC
     `);
 
