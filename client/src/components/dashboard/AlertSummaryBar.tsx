@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, ArrowRight, X } from "lucide-react";
@@ -19,6 +19,15 @@ function isDismissedRecently(): boolean {
 
 export default function AlertSummaryBar({ count }: AlertSummaryBarProps) {
   const [dismissed, setDismissed] = useState(isDismissedRecently);
+  const previousCountRef = useRef(count);
+
+  useEffect(() => {
+    if (count > previousCountRef.current) {
+      localStorage.removeItem(DISMISS_KEY);
+      setDismissed(false);
+    }
+    previousCountRef.current = count;
+  }, [count]);
 
   function handleDismiss() {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));

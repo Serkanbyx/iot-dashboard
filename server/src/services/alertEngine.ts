@@ -1,6 +1,7 @@
 import type { Server } from "socket.io";
 import prisma from "../config/database.js";
 import { sendAlertEmail } from "./emailService.js";
+import { buildAlertNewPayload } from "../utils/alertEvents.js";
 import type { SensorReading } from "../types/sensor.js";
 
 interface ThresholdEntry {
@@ -137,20 +138,7 @@ export async function processReading(reading: SensorReading, io: Server): Promis
     },
   });
 
-  io.to("dashboard").emit("alert:new", {
-    id: alert.id,
-    sensorId: alert.sensorId,
-    floor: alert.floor,
-    sensorType: alert.sensorType,
-    value: alert.value,
-    threshold: alert.threshold,
-    severity: alert.severity,
-    direction: alert.direction,
-    message: alert.message,
-    isAcknowledged: alert.isAcknowledged,
-    emailSent: alert.emailSent,
-    createdAt: alert.createdAt.toISOString(),
-  });
+  io.to("dashboard").emit("alert:new", buildAlertNewPayload(alert));
 
   console.log(`[ALERT] ${severity} — ${message}`);
 

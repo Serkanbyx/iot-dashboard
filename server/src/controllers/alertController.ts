@@ -1,6 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import prisma from "../config/database.js";
 import { getIO } from "../services/socketService.js";
+import {
+  buildAcknowledgedAlertsCleanupWhere,
+  buildAlertAcknowledgedPayload,
+  buildAlertBulkAcknowledgedPayload,
+} from "../utils/alertEvents.js";
 
 const SORT_WHITELIST = ["createdAt", "severity", "sensorType", "sensorId", "floor"] as const;
 type SortField = (typeof SORT_WHITELIST)[number];
@@ -123,10 +128,10 @@ export const acknowledgeAlert = async (
       },
     });
 
-    getIO().to("dashboard").emit("alert:acknowledged", {
-      alertId: alert.id,
-      acknowledgedBy: req.user!.name,
-    });
+    getIO().to("dashboard").emit(
+      "alert:acknowledged",
+      buildAlertAcknowledgedPayload(alert.id, req.user!.name)
+    );
 
     res.json({ alert });
   } catch (error) {
@@ -150,10 +155,10 @@ export const acknowledgeAll = async (
     });
 
     if (result.count > 0) {
-      getIO().to("dashboard").emit("alert:bulk-acknowledged", {
-        acknowledgedBy: req.user!.name,
-        count: result.count,
-      });
+      getIO().to("dashboard").emit(
+        "alert:bulk-acknowledged",
+        buildAlertBulkAcknowledgedPayload(req.user!.name, result.count)
+      );
     }
 
     res.json({ acknowledged: result.count });
@@ -169,13 +174,9 @@ export const deleteOldAlerts = async (
 ): Promise<void> => {
   try {
     const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const result = await prisma.alert.deleteMany({
-      where: {
-        createdAt: { lt: cutoff },
-        isAcknowledged: true,
-      },
+      where: buildAcknowledgedAlertsCleanupWhere(days),
     });
 
     res.json({ deleted: result.count, olderThan: `${days} days` });

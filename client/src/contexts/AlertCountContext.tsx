@@ -61,12 +61,12 @@ export function AlertCountProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleAlertAcknowledged = useCallback(() => {
-    setUnacknowledgedCount((prev) => Math.max(0, prev - 1));
-  }, []);
+    void refreshCount();
+  }, [refreshCount]);
 
   const handleBulkAcknowledged = useCallback(() => {
-    setUnacknowledgedCount(0);
-  }, []);
+    void refreshCount();
+  }, [refreshCount]);
 
   useSocket<Alert>("alert:new", handleNewAlert);
   useSocket<AlertAcknowledgedPayload>(
