@@ -50,3 +50,10 @@ export const changePasswordRules = [
     .isLength({ min: 6 })
     .withMessage("New password must be at least 6 characters"),
 ];
+
+export const refreshRules = [
+  body("refreshToken")
+    .isString()
+    .isLength({ min: 20 })
+    .withMessage("Refresh token is required"),
+];

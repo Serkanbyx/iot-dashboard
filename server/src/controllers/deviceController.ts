@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import prisma from "../config/database.js";
 import { refreshDeviceCache } from "../services/mqttConsumer.js";
+import { buildChangeSet, logAudit } from "../services/auditService.js";
 
 function paramStr(val: string | string[] | undefined): string {
   return Array.isArray(val) ? val[0] : val ?? "";
@@ -71,6 +72,16 @@ export const createDevice = async (
     });
 
     await refreshDeviceCache();
+
+    await logAudit({
+      entityType: "DEVICE",
+      entityId: device.id,
+      action: "CREATE",
+      actorId: req.user!.id,
+      summary: `Created device ${device.sensorId}`,
+      changes: { sensorId, name, floor, types },
+    });
+
     res.status(201).json({ device });
   } catch (error) {
     next(error);
@@ -103,6 +114,16 @@ export const updateDevice = async (
     });
 
     await refreshDeviceCache();
+
+    await logAudit({
+      entityType: "DEVICE",
+      entityId: device.id,
+      action: "UPDATE",
+      actorId: req.user!.id,
+      summary: `Updated device ${device.sensorId}`,
+      changes: buildChangeSet(existing, device, ["name", "floor", "types", "isActive"]),
+    });
+
     res.json({ device });
   } catch (error) {
     next(error);
@@ -126,6 +147,15 @@ export const deleteDevice = async (
     await prisma.device.delete({ where: { id } });
 
     await refreshDeviceCache();
+
+    await logAudit({
+      entityType: "DEVICE",
+      entityId: existing.id,
+      action: "DELETE",
+      actorId: req.user!.id,
+      summary: `Deleted device ${existing.sensorId}`,
+    });
+
     res.json({ message: "Device deleted" });
   } catch (error) {
     next(error);

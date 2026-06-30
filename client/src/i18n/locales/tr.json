@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "IoT Dashboard",
+    "subtitle": "Gerçek zamanlı sensör izleme"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "historical": "Geçmiş",
+    "alerts": "Alarmlar",
+    "devices": "Cihazlar",
+    "settings": "Ayarlar",
+    "users": "Kullanıcılar",
+    "audit": "Denetim Kaydı"
+  },
+  "auth": {
+    "login": "Giriş yap",
+    "register": "Kayıt ol",
+    "logout": "Çıkış",
+    "email": "E-posta",
+    "password": "Şifre",
+    "welcomeBack": "Tekrar hoş geldiniz!",
+    "accessDashboard": "Dashboard'a Gir",
+    "createAccount": "Hesap Oluştur",
+    "wakingUp": "Sunucu uyandırılıyor — ücretsiz planda bu 30 saniye sürebilir.",
+    "retryServer": "Sunucuya ulaşılamadı.",
+    "retry": "Tekrar dene"
+  },
+  "connection": {
+    "live": "Canlı",
+    "wakingUp": "Uyandırılıyor",
+    "reconnecting": "Yeniden bağlanıyor",
+    "offline": "Çevrimdışı",
+    "backendUnavailable": "Sunucu kullanılamıyor"
+  },
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "loading": "Yükleniyor…",
+    "language": "Dil",
+    "english": "İngilizce",
+    "turkish": "Türkçe"
+  },
+  "users": {
+    "title": "Kullanıcı Yönetimi",
+    "createUser": "Kullanıcı Oluştur",
+    "role": "Rol",
+    "status": "Durum",
+    "active": "Aktif",
+    "inactive": "Pasif"
+  },
+  "audit": {
+    "title": "Denetim Kaydı",
+    "actor": "Kullanıcı",
+    "action": "İşlem",
+    "entity": "Varlık",
+    "summary": "Özet",
+    "when": "Zaman"
+  },
+  "settings": {
+    "globalThresholds": "Genel Eşikler",
+    "deviceOverrides": "Cihaz Bazlı Eşikler"
+  }
+}

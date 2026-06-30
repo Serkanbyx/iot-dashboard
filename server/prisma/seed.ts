@@ -64,7 +64,9 @@ async function main(): Promise<void> {
 
   for (const t of thresholds) {
     const config = await prisma.thresholdConfig.upsert({
-      where: { sensorType: t.sensorType },
+      where: {
+        sensorType_sensorId: { sensorType: t.sensorType, sensorId: "" },
+      },
       update: {
         minValue: t.minValue,
         maxValue: t.maxValue,
@@ -74,6 +76,7 @@ async function main(): Promise<void> {
       },
       create: {
         sensorType: t.sensorType,
+        sensorId: "",
         minValue: t.minValue,
         maxValue: t.maxValue,
         criticalMin: t.criticalMin,

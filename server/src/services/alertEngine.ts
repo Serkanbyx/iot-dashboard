@@ -1,6 +1,6 @@
 import type { Server } from "socket.io";
 import prisma from "../config/database.js";
-import { sendAlertEmail } from "./emailService.js";
+import { sendAlertNotifications } from "./notificationService.js";
 import { buildAlertNewPayload } from "../utils/alertEvents.js";
 import type { SensorReading } from "../types/sensor.js";
 
@@ -63,33 +63,61 @@ export function evaluateReadingAgainstThreshold(
 type SeverityLevel = "WARNING" | "CRITICAL";
 type DirectionLevel = "ABOVE" | "BELOW";
 
-const CACHE_TTL_MS = 60 * 1000; // refresh every 60 seconds
-const DEDUP_WINDOW_MS = 60 * 1000; // skip if same alert within 60 seconds
+const CACHE_TTL_MS = 60 * 1000;
+const DEDUP_WINDOW_MS = 60 * 1000;
 
-const thresholdCache = new Map<string, ThresholdEntry>();
+const globalThresholdCache = new Map<string, ThresholdEntry>();
+const deviceThresholdCache = new Map<string, ThresholdEntry>();
 let lastCacheRefresh = 0;
+
+function cacheKey(sensorId: string, sensorType: string): string {
+  return `${sensorId}:${sensorType}`;
+}
 
 async function loadThresholds(): Promise<void> {
   const configs = await prisma.thresholdConfig.findMany();
 
-  thresholdCache.clear();
-  for (const c of configs) {
-    thresholdCache.set(c.sensorType, {
-      minValue: c.minValue,
-      maxValue: c.maxValue,
-      criticalMin: c.criticalMin,
-      criticalMax: c.criticalMax,
-      unit: c.unit,
-      isActive: c.isActive,
-    });
+  globalThresholdCache.clear();
+  deviceThresholdCache.clear();
+
+  for (const config of configs) {
+    const entry: ThresholdEntry = {
+      minValue: config.minValue,
+      maxValue: config.maxValue,
+      criticalMin: config.criticalMin,
+      criticalMax: config.criticalMax,
+      unit: config.unit,
+      isActive: config.isActive,
+    };
+
+    if (config.sensorId) {
+      deviceThresholdCache.set(
+        cacheKey(config.sensorId, config.sensorType),
+        entry
+      );
+    } else {
+      globalThresholdCache.set(config.sensorType, entry);
+    }
   }
 
   lastCacheRefresh = Date.now();
-  console.log(`[ALERT] Threshold cache loaded (${thresholdCache.size} entries)`);
+  console.log(
+    `[ALERT] Threshold cache loaded (${globalThresholdCache.size} global, ${deviceThresholdCache.size} device overrides)`
+  );
 }
 
 export async function reloadThresholdCache(): Promise<void> {
   await loadThresholds();
+}
+
+function resolveThreshold(
+  sensorId: string,
+  enumType: "TEMPERATURE" | "HUMIDITY" | "PRESSURE"
+): ThresholdEntry | undefined {
+  return (
+    deviceThresholdCache.get(cacheKey(sensorId, enumType)) ??
+    globalThresholdCache.get(enumType)
+  );
 }
 
 function mapSensorTypeToEnum(type: string): "TEMPERATURE" | "HUMIDITY" | "PRESSURE" {
@@ -102,7 +130,7 @@ export async function processReading(reading: SensorReading, io: Server): Promis
   }
 
   const enumType = mapSensorTypeToEnum(reading.type);
-  const threshold = thresholdCache.get(enumType);
+  const threshold = resolveThreshold(reading.sensorId, enumType);
 
   if (!threshold || !threshold.isActive) return;
 
@@ -111,7 +139,6 @@ export async function processReading(reading: SensorReading, io: Server): Promis
 
   const { severity, direction, thresholdValue } = evaluation;
 
-  // Dedup: skip if an unacknowledged alert exists for same sensor+type within last 60s
   const recentAlert = await prisma.alert.findFirst({
     where: {
       sensorId: reading.sensorId,
@@ -143,7 +170,7 @@ export async function processReading(reading: SensorReading, io: Server): Promis
   console.log(`[ALERT] ${severity} — ${message}`);
 
   if (severity === "CRITICAL") {
-    const emailSent = await sendAlertEmail({
+    const notifications = await sendAlertNotifications({
       sensorId: reading.sensorId,
       floor: reading.floor,
       sensorType: reading.type,
@@ -155,7 +182,7 @@ export async function processReading(reading: SensorReading, io: Server): Promis
       message,
     });
 
-    if (emailSent) {
+    if (notifications.email || notifications.slack || notifications.webhook) {
       await prisma.alert.update({
         where: { id: alert.id },
         data: { emailSent: true },

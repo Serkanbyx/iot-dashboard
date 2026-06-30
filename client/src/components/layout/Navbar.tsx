@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Bell, Sun, Moon, LogOut } from "lucide-react";
+import { Menu, Bell, Sun, Moon, LogOut, Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAlertCount } from "../../contexts/AlertCountContext";
@@ -15,6 +16,7 @@ interface NavbarProps {
 
 export default function Navbar({ onMenuToggle }: NavbarProps) {
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const { indicatorStatus, connectionState, label } = useConnectionStatus();
   const { isDark, setTheme, theme } = useTheme();
   const navigate = useNavigate();
@@ -65,8 +67,14 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
 
   const handleLogout = useCallback(() => {
     setDropdownOpen(false);
-    logout();
+    void logout();
   }, [logout]);
+
+  const handleLanguageToggle = useCallback(() => {
+    const next = i18n.language === "tr" ? "en" : "tr";
+    void i18n.changeLanguage(next);
+    localStorage.setItem("language", next);
+  }, [i18n]);
 
   const connectionStatus = indicatorStatus;
 
@@ -96,7 +104,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
         <div className="flex items-center gap-2.5">
           <LiveIndicator status={connectionStatus} />
           <span className="text-lg font-semibold tracking-tight">
-            IoT Dashboard
+            {t("app.title")}
           </span>
         </div>
       </div>
@@ -133,6 +141,21 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
               {unacknowledgedCount > 99 ? "99+" : unacknowledgedCount}
             </span>
           )}
+        </button>
+
+        {/* Language toggle */}
+        <button
+          type="button"
+          onClick={handleLanguageToggle}
+          className={cn(
+            "p-2 rounded-lg focus-ring",
+            "text-text-secondary hover:text-text-primary",
+            "hover:bg-bg-card-hover transition-colors duration-150"
+          )}
+          aria-label={t("common.language")}
+          title={i18n.language === "tr" ? t("common.english") : t("common.turkish")}
+        >
+          <Languages size={20} />
         </button>
 
         {/* Theme toggle */}
@@ -212,7 +235,7 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
                 )}
               >
                 <LogOut size={16} />
-                Logout
+                {t("auth.logout")}
               </button>
             </div>
           )}

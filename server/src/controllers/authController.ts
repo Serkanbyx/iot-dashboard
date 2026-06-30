@@ -2,14 +2,33 @@ import type { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import prisma from "../config/database.js";
 import config from "../config/env.js";
-import { generateToken } from "../utils/generateToken.js";
+import { generateAccessToken } from "../utils/generateToken.js";
+import {
+  createRefreshToken,
+  revokeRefreshToken,
+  rotateRefreshToken,
+} from "../services/refreshTokenService.js";
 
 const BCRYPT_ROUNDS = 12;
 
-export const getAuthConfig = (
-  _req: Request,
-  res: Response
-): void => {
+const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  createdAt: true,
+} as const;
+
+async function issueAuthTokens(userId: string) {
+  const [token, refreshToken] = await Promise.all([
+    Promise.resolve(generateAccessToken(userId)),
+    createRefreshToken(userId),
+  ]);
+
+  return { token, refreshToken };
+}
+
+export const getAuthConfig = (_req: Request, res: Response): void => {
   res.json({ registrationAllowed: config.ALLOW_REGISTRATION });
 };
 
@@ -36,12 +55,12 @@ export const register = async (
 
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: userSelect,
     });
 
-    const token = generateToken(user.id);
+    const tokens = await issueAuthTokens(user.id);
 
-    res.status(201).json({ user, token });
+    res.status(201).json({ user, ...tokens });
   } catch (error) {
     next(error);
   }
@@ -73,7 +92,7 @@ export const login = async (
       data: { lastLogin: new Date() },
     });
 
-    const token = generateToken(user.id);
+    const tokens = await issueAuthTokens(user.id);
 
     res.json({
       user: {
@@ -82,8 +101,67 @@ export const login = async (
         email: user.email,
         role: user.role,
       },
-      token,
+      ...tokens,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refresh = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const refreshToken =
+      typeof req.body?.refreshToken === "string" ? req.body.refreshToken : "";
+
+    if (!refreshToken) {
+      res.status(400).json({ error: "Refresh token is required" });
+      return;
+    }
+
+    const rotated = await rotateRefreshToken(refreshToken);
+    if (!rotated) {
+      res.status(401).json({ error: "Invalid or expired refresh token" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: rotated.userId },
+      select: userSelect,
+    });
+
+    if (!user) {
+      res.status(401).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({
+      user,
+      token: generateAccessToken(user.id),
+      refreshToken: rotated.refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const refreshToken =
+      typeof req.body?.refreshToken === "string" ? req.body.refreshToken : "";
+
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
   }

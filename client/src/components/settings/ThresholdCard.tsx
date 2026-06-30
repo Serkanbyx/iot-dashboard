@@ -16,8 +16,10 @@ interface ThresholdCardProps {
   saving: boolean;
   toggling: boolean;
   readOnly?: boolean;
-  onSave: (sensorType: string, values: ThresholdFormValues) => void;
-  onToggleActive: (sensorType: string, isActive: boolean) => void;
+  onSave: (sensorType: string, values: ThresholdFormValues, sensorId?: string) => void;
+  onToggleActive: (sensorType: string, isActive: boolean, sensorId?: string) => void;
+  onDelete?: () => void;
+  deleting?: boolean;
 }
 
 const TYPE_CONFIG: Record<
@@ -55,6 +57,8 @@ export default function ThresholdCard({
   readOnly = false,
   onSave,
   onToggleActive,
+  onDelete,
+  deleting = false,
 }: ThresholdCardProps) {
   const meta = TYPE_CONFIG[config.sensorType] ?? {
     label: config.sensorType,
@@ -101,7 +105,7 @@ export default function ThresholdCard({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (readOnly || error || !isDirty || saving) return;
-    onSave(config.sensorType, values);
+    onSave(config.sensorType, values, config.sensorId);
   }
 
   return (
@@ -117,6 +121,11 @@ export default function ThresholdCard({
           </div>
           <h2 className="text-base font-semibold text-text-primary">
             {meta.label}
+            {config.sensorId ? (
+              <span className="ml-2 text-xs font-normal text-text-muted">
+                ({config.sensorId})
+              </span>
+            ) : null}
           </h2>
         </div>
 
@@ -132,7 +141,8 @@ export default function ThresholdCard({
             aria-label={`Toggle ${meta.label} monitoring`}
             disabled={toggling || readOnly}
             onClick={() =>
-              !readOnly && onToggleActive(config.sensorType, !config.isActive)
+              !readOnly &&
+              onToggleActive(config.sensorType, !config.isActive, config.sensorId)
             }
             className={cn(
               "relative h-6 w-11 rounded-full transition-colors duration-200 shrink-0",
@@ -194,7 +204,21 @@ export default function ThresholdCard({
 
       {/* Save */}
       {!readOnly && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleting}
+              className={cn(
+                "flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold",
+                "text-danger border border-danger/30 hover:bg-danger/10",
+                "disabled:opacity-50 disabled:pointer-events-none"
+              )}
+            >
+              Remove Override
+            </button>
+          )}
           <button
             type="submit"
             disabled={!!error || !isDirty || saving}

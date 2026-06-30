@@ -1,26 +1,28 @@
 import { useState, useEffect, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, TrendingUp, Bell, Cpu, Sliders } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "../../utils/cn";
 
 interface MobileNavItem {
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ size?: number }>;
   path: string;
   adminOnly?: boolean;
 }
 
 const NAV_ITEMS: MobileNavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Historical", icon: TrendingUp, path: "/historical" },
-  { label: "Alerts", icon: Bell, path: "/alerts" },
-  { label: "Devices", icon: Cpu, path: "/devices", adminOnly: true },
-  { label: "Settings", icon: Sliders, path: "/settings", adminOnly: true },
+  { labelKey: "nav.dashboard", icon: LayoutDashboard, path: "/" },
+  { labelKey: "nav.historical", icon: TrendingUp, path: "/historical" },
+  { labelKey: "nav.alerts", icon: Bell, path: "/alerts" },
+  { labelKey: "nav.devices", icon: Cpu, path: "/devices", adminOnly: true },
+  { labelKey: "nav.settings", icon: Sliders, path: "/settings", adminOnly: true },
 ];
 
 export default function MobileNav() {
   const { isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   const visibleItems = useMemo(
@@ -71,7 +73,7 @@ export default function MobileNav() {
           {({ isActive }) => (
             <>
               <item.icon size={22} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium">{t(item.labelKey)}</span>
               {isActive && (
                 <span className="absolute bottom-2 h-1 w-1 rounded-full bg-accent-blue" />
               )}

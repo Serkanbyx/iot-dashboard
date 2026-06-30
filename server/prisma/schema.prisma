@@ -28,6 +28,18 @@ enum Direction {
   BELOW
 }
 
+enum AuditEntityType {
+  DEVICE
+  THRESHOLD
+  USER
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
 model User {
   id        String    @id @default(uuid())
   name      String    @db.VarChar(50)
@@ -39,14 +51,30 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  acknowledgedAlerts Alert[] @relation("AcknowledgedBy")
+  acknowledgedAlerts Alert[]           @relation("AcknowledgedBy")
   thresholdConfigs   ThresholdConfig[] @relation("CreatedBy")
-  devices            Device[] @relation("DeviceCreatedBy")
+  devices            Device[]          @relation("DeviceCreatedBy")
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]        @relation("AuditActor")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique @db.VarChar(64)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model ThresholdConfig {
   id          String     @id @default(uuid())
-  sensorType  SensorType @unique
+  sensorType  SensorType
+  sensorId    String     @default("") @db.VarChar(50)
   minValue    Float
   maxValue    Float
   criticalMin Float
@@ -58,6 +86,9 @@ model ThresholdConfig {
   updatedAt   DateTime   @updatedAt
 
   createdBy User? @relation("CreatedBy", fields: [createdById], references: [id])
+
+  @@unique([sensorType, sensorId])
+  @@index([sensorId])
 }
 
 model Alert {
@@ -99,4 +130,20 @@ model Device {
 
   @@index([floor])
   @@index([isActive])
+}
+
+model AuditLog {
+  id         String          @id @default(uuid())
+  entityType AuditEntityType
+  entityId   String          @db.VarChar(100)
+  action     AuditAction
+  actorId    String
+  summary    String          @db.VarChar(255)
+  changes    Json?
+  createdAt  DateTime        @default(now())
+
+  actor User @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([entityType, entityId])
 }

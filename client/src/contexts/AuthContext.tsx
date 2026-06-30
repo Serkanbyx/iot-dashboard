@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import * as authService from "../api/authService";
+import { logoutRefreshToken } from "../api/refreshClient";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -17,10 +18,16 @@ interface AuthContextValue {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function persistAuth(token: string, refreshToken: string, user: User) {
+  localStorage.setItem("token", token);
+  localStorage.setItem("refreshToken", refreshToken);
+  localStorage.setItem("user", JSON.stringify(user));
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -43,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         if (active) {
           localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           setToken(null);
           setUser(null);
@@ -61,28 +69,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.login({ email, password });
-    localStorage.setItem("token", res.token);
-    localStorage.setItem("user", JSON.stringify(res.user));
+    persistAuth(res.token, res.refreshToken, res.user);
     setToken(res.token);
     setUser(res.user);
+    setVerified(true);
   }, []);
 
   const register = useCallback(
     async (name: string, email: string, password: string) => {
       const res = await authService.register({ name, email, password });
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
+      persistAuth(res.token, res.refreshToken, res.user);
       setToken(res.token);
       setUser(res.user);
+      setVerified(true);
     },
     []
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      try {
+        await logoutRefreshToken(refreshToken);
+      } catch {
+        // ignore logout network errors
+      }
+    }
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
+    setVerified(false);
   }, []);
 
   const isAdmin = user?.role === "ADMIN";

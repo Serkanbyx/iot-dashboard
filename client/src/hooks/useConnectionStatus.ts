@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useBackendWake } from "../contexts/BackendWakeContext";
 import { useSocketContext } from "../contexts/SocketContext";
 
@@ -14,6 +15,7 @@ export function useConnectionStatus(): {
   indicatorStatus: IndicatorStatus;
   label: string;
 } {
+  const { t } = useTranslation();
   const { isConnected } = useSocketContext();
   const { status: backendStatus } = useBackendWake();
 
@@ -21,7 +23,7 @@ export function useConnectionStatus(): {
     return {
       connectionState: "waking",
       indicatorStatus: "warning",
-      label: "Waking up",
+      label: t("connection.wakingUp"),
     };
   }
 
@@ -29,7 +31,7 @@ export function useConnectionStatus(): {
     return {
       connectionState: "offline",
       indicatorStatus: "offline",
-      label: "Backend unavailable",
+      label: t("connection.backendUnavailable"),
     };
   }
 
@@ -37,13 +39,13 @@ export function useConnectionStatus(): {
     return {
       connectionState: "connected",
       indicatorStatus: "online",
-      label: "Live",
+      label: t("connection.live"),
     };
   }
 
   return {
     connectionState: "reconnecting",
     indicatorStatus: "warning",
-    label: "Reconnecting",
+    label: t("connection.reconnecting"),
   };
 }

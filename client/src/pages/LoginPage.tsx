@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { useBackendWake } from "../contexts/BackendWakeContext";
 import * as authService from "../api/authService";
@@ -20,6 +21,7 @@ type AuthMode = "login" | "register";
 
 export default function LoginPage() {
   const { login, register } = useAuth();
+  const { t } = useTranslation();
   const { status: backendStatus, isWaking, wakeBackend } = useBackendWake();
   const navigate = useNavigate();
 
@@ -69,7 +71,7 @@ export default function LoginPage() {
 
       if (activeMode === "login") {
         await login(email, password);
-        toast.success("Welcome back!");
+        toast.success(t("auth.welcomeBack"));
       } else {
         if (!name.trim()) {
           toast.error("Name is required.");
@@ -144,11 +146,9 @@ export default function LoginPage() {
             <Activity className="relative h-7 w-7 text-accent-blue" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">IoT Dashboard</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("app.title")}</h1>
             <p className="mt-1 text-sm text-text-secondary">
-              {isLogin
-                ? "Sensor Monitoring Command Center"
-                : "Create your account"}
+              {isLogin ? t("app.subtitle") : t("auth.createAccount")}
             </p>
           </div>
         </div>
@@ -167,17 +167,17 @@ export default function LoginPage() {
             {isWaking ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 size={16} className="animate-spin" />
-                Waking up server — this can take up to 30 seconds on free tier.
+                {t("auth.wakingUp")}
               </span>
             ) : (
               <span>
-                Could not reach the server.{" "}
+                {t("auth.retryServer")}{" "}
                 <button
                   type="button"
                   onClick={() => void wakeBackend()}
                   className="font-semibold underline underline-offset-2"
                 >
-                  Retry
+                  {t("auth.retry")}
                 </button>
               </span>
             )}
@@ -230,7 +230,7 @@ export default function LoginPage() {
             transition={{ delay: 0.1 }}
           >
             <label htmlFor="email" className="sr-only">
-              Email
+              {t("auth.email")}
             </label>
             <div className="relative">
               <Mail
@@ -264,7 +264,7 @@ export default function LoginPage() {
             transition={{ delay: 0.2 }}
           >
             <label htmlFor="password" className="sr-only">
-              Password
+              {t("auth.password")}
             </label>
             <div className="relative">
               <Lock
@@ -321,9 +321,9 @@ export default function LoginPage() {
               {loading ? (
                 <Loader2 className="mx-auto h-5 w-5 animate-spin" />
               ) : isLogin ? (
-                "Access Dashboard"
+                t("auth.accessDashboard")
               ) : (
-                "Create Account"
+                t("auth.createAccount")
               )}
             </button>
           </motion.div>
@@ -343,7 +343,7 @@ export default function LoginPage() {
               onClick={switchMode}
               className="font-semibold text-accent-blue hover:text-accent-blue/80 transition-colors"
             >
-              {isLogin ? "Sign up" : "Sign in"}
+              {isLogin ? t("auth.register") : t("auth.login")}
             </button>
           </motion.p>
         )}

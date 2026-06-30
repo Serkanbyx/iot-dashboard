@@ -9,8 +9,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Users,
+  ScrollText,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useConnectionStatus } from "../../hooks/useConnectionStatus";
 import LiveIndicator from "../dashboard/LiveIndicator";
@@ -22,22 +25,25 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ size?: number }>;
   path: string;
   adminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Historical", icon: TrendingUp, path: "/historical" },
-  { label: "Alerts", icon: Bell, path: "/alerts" },
-  { label: "Devices", icon: Cpu, path: "/devices", adminOnly: true },
-  { label: "Settings", icon: Sliders, path: "/settings", adminOnly: true },
+  { labelKey: "nav.dashboard", icon: LayoutDashboard, path: "/" },
+  { labelKey: "nav.historical", icon: TrendingUp, path: "/historical" },
+  { labelKey: "nav.alerts", icon: Bell, path: "/alerts" },
+  { labelKey: "nav.devices", icon: Cpu, path: "/devices", adminOnly: true },
+  { labelKey: "nav.settings", icon: Sliders, path: "/settings", adminOnly: true },
+  { labelKey: "nav.users", icon: Users, path: "/users", adminOnly: true },
+  { labelKey: "nav.audit", icon: ScrollText, path: "/audit", adminOnly: true },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAdmin } = useAuth();
+  const { t } = useTranslation();
   const { indicatorStatus } = useConnectionStatus();
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -90,7 +96,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   isWide ? "opacity-100" : "opacity-0 w-0"
                 )}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
 
               {/* Tooltip when collapsed */}
@@ -103,7 +109,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     "transition-opacity duration-150 whitespace-nowrap z-50"
                   )}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               )}
             </NavLink>
@@ -201,7 +207,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     }
                   >
                     <item.icon size={22} />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">{t(item.labelKey)}</span>
                   </NavLink>
                 ))}
               </nav>

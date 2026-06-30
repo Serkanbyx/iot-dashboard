@@ -14,6 +14,8 @@ export interface EnvConfig {
   MQTT_PASSWORD: string;
   MQTT_TOPIC_ROOT: string;
   JWT_SECRET: string;
+  JWT_ACCESS_EXPIRES_IN: string;
+  JWT_REFRESH_EXPIRES_IN: string;
   JWT_EXPIRES_IN: string;
   CLIENT_URL: string;
   SMTP_HOST: string;
@@ -22,7 +24,10 @@ export interface EnvConfig {
   SMTP_PASS: string;
   ALERT_EMAIL_FROM: string;
   ALERT_EMAIL_TO: string;
+  SLACK_WEBHOOK_URL: string;
+  ALERT_WEBHOOK_URL: string;
   ALLOW_REGISTRATION: boolean;
+  TIMESCALE_ENABLED: boolean;
 }
 
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
@@ -57,7 +62,9 @@ function loadConfig(): EnvConfig {
     MQTT_PASSWORD: env.MQTT_PASSWORD ?? "",
     MQTT_TOPIC_ROOT: env.MQTT_TOPIC_ROOT ?? "factory",
     JWT_SECRET: jwtSecret,
-    JWT_EXPIRES_IN: env.JWT_EXPIRES_IN ?? "7d",
+    JWT_ACCESS_EXPIRES_IN: env.JWT_ACCESS_EXPIRES_IN ?? env.JWT_EXPIRES_IN ?? "15m",
+    JWT_REFRESH_EXPIRES_IN: env.JWT_REFRESH_EXPIRES_IN ?? "7d",
+    JWT_EXPIRES_IN: env.JWT_EXPIRES_IN ?? "15m",
     CLIENT_URL: env.CLIENT_URL ?? "http://localhost:5173",
     SMTP_HOST: env.SMTP_HOST ?? "smtp.gmail.com",
     SMTP_PORT: Number(env.SMTP_PORT) || 587,
@@ -65,10 +72,13 @@ function loadConfig(): EnvConfig {
     SMTP_PASS: env.SMTP_PASS ?? "",
     ALERT_EMAIL_FROM: env.ALERT_EMAIL_FROM ?? "",
     ALERT_EMAIL_TO: env.ALERT_EMAIL_TO ?? "",
+    SLACK_WEBHOOK_URL: env.SLACK_WEBHOOK_URL ?? "",
+    ALERT_WEBHOOK_URL: env.ALERT_WEBHOOK_URL ?? "",
     ALLOW_REGISTRATION: parseBoolean(
       env.ALLOW_REGISTRATION,
       nodeEnv !== "production"
     ),
+    TIMESCALE_ENABLED: parseBoolean(env.TIMESCALE_ENABLED, false),
   };
 }
 

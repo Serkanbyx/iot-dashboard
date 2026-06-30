@@ -27,6 +27,7 @@ export interface AlertStats {
 export interface ThresholdConfig {
   id: string;
   sensorType: string;
+  sensorId?: string;
   minValue: number;
   maxValue: number;
   criticalMin: number;

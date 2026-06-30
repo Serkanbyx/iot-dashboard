@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "IoT Dashboard",
+    "subtitle": "Real-time sensor monitoring"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "historical": "Historical",
+    "alerts": "Alerts",
+    "devices": "Devices",
+    "settings": "Settings",
+    "users": "Users",
+    "audit": "Audit Log"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "welcomeBack": "Welcome back!",
+    "accessDashboard": "Access Dashboard",
+    "createAccount": "Create Account",
+    "wakingUp": "Waking up server — this can take up to 30 seconds on free tier.",
+    "retryServer": "Could not reach the server.",
+    "retry": "Retry"
+  },
+  "connection": {
+    "live": "Live",
+    "wakingUp": "Waking up",
+    "reconnecting": "Reconnecting",
+    "offline": "Offline",
+    "backendUnavailable": "Backend unavailable"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading…",
+    "language": "Language",
+    "english": "English",
+    "turkish": "Turkish"
+  },
+  "users": {
+    "title": "User Management",
+    "createUser": "Create User",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "actor": "Actor",
+    "action": "Action",
+    "entity": "Entity",
+    "summary": "Summary",
+    "when": "When"
+  },
+  "settings": {
+    "globalThresholds": "Global Thresholds",
+    "deviceOverrides": "Device Overrides"
+  }
+}
